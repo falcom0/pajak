@@ -2,13 +2,12 @@ package usu.pajak.fariz.service;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
-import usu.pajak.fariz.model.Salary;
-import usu.pajak.fariz.model.SalaryDetail;
-import usu.pajak.fariz.model.PendapatanTetaps;
-import usu.pajak.fariz.model.UserPajak;
+import dev.morphia.query.internal.MorphiaCursor;
+import usu.pajak.fariz.model.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -23,7 +22,7 @@ public class Tax {
     private Datastore datastore;
 
     public static void main(String[] args) throws IOException {
-        Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?request_id=2011","GET"),Salary.class);
+        Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?request_id=1030","GET"),Salary.class);
         new Tax(salary);
     }
 
@@ -59,12 +58,11 @@ public class Tax {
 //                                && c.getPayment().getAsJsonObject().has("p1"))
 //                        .collect(Collectors.toList());
                 List<SalaryDetail> honor = listDalam.stream()
-                        .filter(c ->
-                                !(c.getPayment().getAsJsonObject().has("basic_salary")) ||
-                                        !(c.getPayment().getAsJsonObject().get("type").getAsJsonObject().get("id").getAsInt()==23))
-//                        .filter(c -> !(c.getPayment().getAsJsonObject().get("type").getAsJsonObject().get("id").getAsInt()==23
-//                                && c.getPayment().getAsJsonObject().has("p1")))
+                        .filter(c -> !(c.getPayment().getAsJsonObject().has("basic_salary")))
+                        .filter(c -> !(c.getPayment().getAsJsonObject().get("type").getAsJsonObject().get("id").getAsInt()==23
+                                && c.getPayment().getAsJsonObject().has("p1")))
                         .collect(Collectors.toList());
+
 
                 if(listMwa.size() > 0){
 
@@ -79,7 +77,7 @@ public class Tax {
                 }
 
                 if(honor.size() > 0){
-                    calculateTaxSalary(honor);
+//                    calculateTaxSalary(honor);
                 }
             }else{ }
         }else{ }
@@ -88,29 +86,11 @@ public class Tax {
     private void calculateTaxSalary(List<SalaryDetail> salaryDetailList){
         salaryDetailList.forEach(sd -> {
             Query<UserPajak> query = datastore.createQuery(UserPajak.class).filter("id_user", sd.getUser().getId().toString());
-            UserPajak userPajak = query.get();
+            UserPajak userPajak = query.first();
             if(userPajak!=null){ // update data
                 if(userPajak.getNpwp_simsdm()==null) {userPajak.setNpwp_simsdm(sd.getUser().getNpwp());}
                 else if (userPajak.getNpwp_simsdm().isEmpty()) {userPajak.setNpwp_simsdm(sd.getUser().getNpwp());}
 
-                Query<PendapatanTetaps> qPt = datastore.createQuery(PendapatanTetaps.class)
-                        .disableValidation()
-                        .filter("id_user", userPajak.getId_user())
-                        .filter("salary_id", sd.getId());
-                if(qPt.first()==null){ //not exist (insert new data)
-                    PendapatanTetaps pendapatanTetaps = new PendapatanTetaps();
-                    pendapatanTetaps.set_idUser(userPajak.getId_user());
-                    pendapatanTetaps.setSalary_id(sd.getId().intValue());
-                    BasicDBObject details = BasicDBObject.parse(sd.getPayment().getAsJsonObject().toString());
-//                    details.addProperty("pph21",hasilPph21);
-                    details.put("status", true);
-//                    details.addProperty("created_at", createdAt);
-//                    details.addProperty("updated_at",updatedAt);
-                    pendapatanTetaps.setDetails(details);
-                    datastore.save(pendapatanTetaps);
-                }else{ //already exist (if you want to update ? is here.)
-
-                }
             }else{ // insert data
                 userPajak = new UserPajak();
                 userPajak.setId_user(sd.getUser().getId().toString());
@@ -121,47 +101,188 @@ public class Tax {
                 userPajak.setBehind_degree(sd.getUser().getBehind_degree());
                 userPajak.setNip_simsdm(sd.getUser().getNip_nik().toString());
                 userPajak.setGroup(sd.getUser().getGroup());
+                userPajak.setTotal_pendapatan(new UserPajakPendapatan());
+                userPajak.setSetting_pajak(new UserPajakTax());
+                userPajak.setPph21(new UserPajakPPH());
+            }
 
-                datastore.save(userPajak);
+            Query<PendapatanTetaps> qPt = datastore.createQuery(PendapatanTetaps.class)
+                    .disableValidation()
+                    .filter("id_user", sd.getUser().getId().toString());
+            if(qPt.count()==0){ //not exist (insert new data)
+                PendapatanTetaps pendapatanTetaps = initializePendapatanTetap(sd, userPajak);
 
-                PendapatanTetaps pendapatanTetaps = new PendapatanTetaps();
-                pendapatanTetaps.set_idUser(userPajak.getId_user());
-                pendapatanTetaps.setSalary_id(sd.getId().intValue());
-                pendapatanTetaps.setUnit(sd.getUnit());
-                BasicDBObject details = BasicDBObject.parse(sd.getPayment().getAsJsonObject().toString());
-                details.putIfAbsent("jkk", StaticValue.jkk);
-                details.putIfAbsent("jkm", StaticValue.jkm);
-                details.putIfAbsent("bpjs_kesehatan", StaticValue.bpjs_kesehatan);
                 BigDecimal totalPendapatanSementara = getPendapatanSementara(sd);
+
+                Pajak pajak = new Pajak();
+                pajak.setTotal_pendapatan_rka(totalPendapatanSementara);
+                pajak.setJkk(StaticValue.jkk);
+                pajak.setJkm(StaticValue.jkm);
+                pajak.setBpjs_kesehatan(StaticValue.bpjs_kesehatan);
+
                 totalPendapatanSementara = totalPendapatanSementara.add(StaticValue.jkk).add(StaticValue.jkm).add(StaticValue.bpjs_kesehatan);
+                pajak.setBruto_pendapatan(totalPendapatanSementara);
 
                 BigDecimal biayaJabatan = totalPendapatanSementara.multiply(StaticValue.persenBiayaJabatan);
-                if (biayaJabatan.compareTo(StaticValue.limitBiayaJabatan) <= 0) { details.putIfAbsent("biaya_jabatan", biayaJabatan);}
-                else {details.putIfAbsent("biaya_jabatan", "6000000.00");}
+                if(userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun() == null){
+                    if (biayaJabatan.compareTo(StaticValue.limitBiayaJabatan) <= 0) {
+                        pajak.setBiaya_jabatan(biayaJabatan);
+                        userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(biayaJabatan);
+                    }else {
+                        biayaJabatan = BigDecimal.ZERO;
+                        pajak.setBiaya_jabatan(biayaJabatan);
+                        userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(StaticValue.limitBiayaJabatan);
+                    }
+                }else{
+                    if(userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun().compareTo(StaticValue.limitBiayaJabatan)<0){
+                        if(userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun().add(biayaJabatan).compareTo(StaticValue.limitBiayaJabatan)<0){
+                            userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(
+                                    userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun().add(biayaJabatan));
+                        }else{
+                            biayaJabatan = StaticValue.limitBiayaJabatan.subtract(userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun());
+                            userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(StaticValue.limitBiayaJabatan);
+                        }
+                    }else{
+                        biayaJabatan = BigDecimal.ZERO;
+                        pajak.setBiaya_jabatan(biayaJabatan);
+                        userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(StaticValue.limitBiayaJabatan);
+                    }
+                }
 
 
-//                if(userPajak.getPotongan_jabatan_A1_setahun() == null)userPajak.setPotongan_jabatan_A1_setahun(new BigDecimal(0.00));
-//                if(userPajak.getNetto_pendapatan_setahun() == null)userPajak.setNetto_pendapatan_setahun(new BigDecimal(0.00));
-//                if(userPajak.getSisa_ptkp() == null)
+                BigDecimal nettoPendapatan = totalPendapatanSementara.subtract(biayaJabatan);
+                pajak.setNetto_pendapatan(nettoPendapatan);
 
-//                Iterator<Map.Entry<String, JsonElement>> iterator = sd.getPayment().getAsJsonObject().entrySet().iterator();
-//                BigDecimal totalPendapatanSementara = new BigDecimal(0.00);
-//                while(iterator.hasNext()){
-//                    Map.Entry<String, JsonElement> map = iterator.next();
-//                    try{
-//                        Integer value = map.getValue().getAsInt();
-//                    }catch (Exception e){
-//                        continue;
-//                    }
-//                }
-//                    details.addProperty("pph21",hasilPph21);
-                details.put("status", true);
-//                    details.addProperty("created_at", createdAt);
-//                    details.addProperty("updated_at",updatedAt);
-                pendapatanTetaps.setDetails(details);
+                BigDecimal pkpSetahun = new BigDecimal(0.00), pkp = new BigDecimal(0.00);
+                BigDecimal ptkpSetahun = new BigDecimal(Ptkp.getInstance.getPtkp(sd.getUser().getId().toString()));
+
+                if(userPajak.getTotal_pendapatan().getPtkp_setahun() == null)
+                    userPajak.getTotal_pendapatan().setPtkp_setahun(ptkpSetahun);
+
+                Integer month = Integer.parseInt(sd.getPayment().getAsJsonObject().get("request").getAsJsonObject().get("updated_time").getAsString().split(" ")[0].split("-")[1]);
+                pendapatanTetaps.setMonth(month);
+                pendapatanTetaps.setYear(Integer.parseInt(sd.getPayment().getAsJsonObject().get("request").getAsJsonObject().get("updated_time").getAsString().split(" ")[0].split("-")[0]));
+                BigDecimal nettoPendapatanSetahun = nettoPendapatan.multiply(BigDecimal.valueOf(13-month));
+                boolean isNettoPendapatanSetahun = false;
+                if(userPajak.getTotal_pendapatan().getNetto_pendapatan_setahun() == null){
+                    userPajak.getTotal_pendapatan().setNetto_pendapatan_setahun(nettoPendapatanSetahun);
+                }else{
+                    if(userPajak.getTotal_pendapatan().getNetto_pendapatan_setahun().compareTo(BigDecimal.ZERO)>0) {
+                        userPajak.getTotal_pendapatan().setNetto_pendapatan_setahun(
+                                userPajak.getTotal_pendapatan().getNetto_pendapatan_setahun().add(nettoPendapatanSetahun)
+                        );
+                        isNettoPendapatanSetahun = true;
+                    }else{
+                        userPajak.getTotal_pendapatan().setNetto_pendapatan_setahun(nettoPendapatanSetahun);
+                    }
+                }
+
+                BigDecimal sisaPtkpSetahun;
+                if(isNettoPendapatanSetahun){
+                    if(userPajak.getTotal_pendapatan().getSisa_ptkp().compareTo(BigDecimal.ZERO)>0){
+                        sisaPtkpSetahun = userPajak.getTotal_pendapatan().getSisa_ptkp();
+                        if(sisaPtkpSetahun.compareTo(nettoPendapatanSetahun) > 0){
+                            sisaPtkpSetahun = sisaPtkpSetahun.subtract(nettoPendapatanSetahun);
+                            pkpSetahun = BigDecimal.ZERO;
+                        }else{
+                            pkpSetahun = nettoPendapatanSetahun.subtract(sisaPtkpSetahun);
+                            sisaPtkpSetahun = BigDecimal.ZERO;
+                        }
+                        userPajak.getTotal_pendapatan().setSisa_ptkp(sisaPtkpSetahun);
+                        userPajak.getTotal_pendapatan().setTotal_pkp(pkpSetahun);
+                    }else{
+                        pkpSetahun = userPajak.getTotal_pendapatan().getTotal_pkp().add(nettoPendapatanSetahun);
+                        userPajak.getTotal_pendapatan().setTotal_pkp(pkpSetahun);
+                    }
+                }else {
+                    if (nettoPendapatanSetahun.compareTo(ptkpSetahun) >= 0) {
+                        pkpSetahun = nettoPendapatanSetahun.subtract(ptkpSetahun);
+                        sisaPtkpSetahun = new BigDecimal(0.00);
+                        userPajak.getTotal_pendapatan().setSisa_ptkp(sisaPtkpSetahun);
+                        userPajak.getTotal_pendapatan().setTotal_pkp(pkpSetahun);
+                    } else {
+                        userPajak.getTotal_pendapatan().setTotal_pkp(pkpSetahun);
+                        sisaPtkpSetahun = ptkpSetahun.subtract(nettoPendapatanSetahun);
+                        userPajak.getTotal_pendapatan().setSisa_ptkp(sisaPtkpSetahun);
+                    }
+                }
+
+                TarifPajak t = new TarifPajak();
+                BigDecimal reminder;
+                Integer index;
+                if(userPajak.getPph21().getUsu()==null){
+                    reminder = new BigDecimal("50000000.00");
+                    index = 0;
+                }else{
+                    reminder = userPajak.getSetting_pajak().getReminder();
+                    index = userPajak.getSetting_pajak().getIndex();
+                }
+
+                if(userPajak.getNpwp_simsdm()==null||userPajak.getNpwp_simsdm().equalsIgnoreCase("")){
+                    if(userPajak.getNpwp()==null || userPajak.getNpwp().equalsIgnoreCase(""))
+                        t.hitungPajak(reminder,pkpSetahun,index, TarifPajak.LAYER_SETAHUN, usu.pajak.model.TarifPajak.TARIF_NON_NPWP, true);
+                    else
+                        t.hitungPajak(reminder,pkpSetahun,index, TarifPajak.LAYER_SETAHUN, usu.pajak.model.TarifPajak.TARIF_NPWP, true);
+                }else{
+                    t.hitungPajak(reminder,pkpSetahun,index, TarifPajak.LAYER_SETAHUN, usu.pajak.model.TarifPajak.TARIF_NPWP, true);
+                }
+
+
+                BasicDBList listPph21 = t.getListPph21();
+                BigDecimal total_pph21_sementara = new BigDecimal(0.00);
+                for(int i=0;i<listPph21.size();i++) {
+                    BasicDBObject obj = (BasicDBObject) listPph21.get(i);
+                    total_pph21_sementara = total_pph21_sementara.add(new BigDecimal(obj.getString("_hasil")));
+                }
+
+                pajak.setNetto_take_homepay(totalPendapatanSementara.subtract(total_pph21_sementara));
+                pajak.setPph21(listPph21);
+                userPajak.getSetting_pajak().setReminder(t.getReminderPajak());
+                userPajak.getSetting_pajak().setIndex(t.getIndex());
+                pendapatanTetaps.setPajak(pajak);
+
+                if(userPajak.getPph21().getUsu()==null) {
+                    userPajak.getPph21().setUsu(total_pph21_sementara);
+                }else {
+                    userPajak.getPph21().setUsu(userPajak.getPph21().getUsu().add(total_pph21_sementara));
+                }
+//                userPajak.getPph21().setLebih_bayar(BigDecimal.ZERO);
+//                userPajak.getPph21().setKurang_bayar(BigDecimal.ZERO);
+
+                datastore.save(userPajak);
                 datastore.save(pendapatanTetaps);
+
+            }else{ //already has data pendapatan tetap
+                Query<PendapatanTetaps> qPt2 = datastore.createQuery(PendapatanTetaps.class)
+                        .disableValidation()
+                       . filter("id_user", sd.getUser().getId())
+                        .filter("salary_id", sd.getId());
+                if(qPt2.count()==0){ //salary not duplicate
+                    List<PendapatanTetaps> listPendapatanTetap = qPt.find().toList();
+                    PendapatanTetaps pBefore = listPendapatanTetap.get(listPendapatanTetap.size()-1);
+                    BigDecimal tBefore = pBefore.getPajak().getTotal_pendapatan_rka();
+                    BigDecimal tNow = getPendapatanSementara(sd);
+                    if(tBefore.compareTo(tNow)==0){ // just input not updating netto setahun
+                        PendapatanTetaps pendapatanTetaps = initializePendapatanTetap(sd, userPajak);
+
+                    }else{ // there is some difference
+
+                    }
+                }else{ //salary sudah ada (salary duplicate)
+
+                }
             }
         });
+    }
+
+    private PendapatanTetaps initializePendapatanTetap(SalaryDetail sd, UserPajak userPajak) {
+        PendapatanTetaps pendapatanTetaps = new PendapatanTetaps();
+        pendapatanTetaps.setId_user(userPajak.getId_user());
+        pendapatanTetaps.setSalary_id(sd.getId().intValue());
+        pendapatanTetaps.setUnit(sd.getUnit());
+        BasicDBObject rkaPayment = BasicDBObject.parse(sd.getPayment().getAsJsonObject().toString());
+        pendapatanTetaps.setRka_payment(rkaPayment);
+        return  pendapatanTetaps;
     }
 
     private void calculateTaxHonor(){
@@ -170,12 +291,19 @@ public class Tax {
 
     private BigDecimal getPendapatanSementara(SalaryDetail sd){
         return new BigDecimal(sd.getPayment().getAsJsonObject().entrySet().stream()
-                .filter(row -> row.getValue().equals(Integer.class))
+                .filter(row -> {
+                    if(row.getValue().isJsonObject()) return false;
+                    else
+                        if(row.getValue().isJsonPrimitive())
+                            if(row.getValue().getAsJsonPrimitive().isNumber() && !(row.getKey().contains("pph21"))) return true;
+                            else return false;
+                        else return  false;
+                })
                 .mapToInt(row -> {
-                    if(!row.getKey().equalsIgnoreCase("return"))
+                    if(!row.getKey().equalsIgnoreCase("returned"))
                         return row.getValue().getAsInt();
                     else
                         return 0;
-                }).sum() - sd.getPayment().getAsJsonObject().get("return").getAsInt());
+                }).sum() - sd.getPayment().getAsJsonObject().get("returned").getAsInt());
     }
 }

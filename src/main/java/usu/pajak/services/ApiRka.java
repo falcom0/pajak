@@ -487,7 +487,7 @@ public class ApiRka {
                         p.setTotal_pkp(pkpSetahun.toString());
                     }
                 } else {
-                    nettoPendapatanSetahun = nettoPendapatan;
+                    nettoPendapatanSetahun = nettoPendapatan; // apakah harusnya di tambahkan dengan nilai sebelumnya
 
                     p.setNetto_pendapatan_setahun(nettoPendapatanSetahun.toString());
 

@@ -1,11 +1,16 @@
 package usu.pajak.fariz.model;
 
 import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import dev.morphia.annotations.*;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Indexed;
-import org.mongodb.morphia.annotations.Reference;
+
+import java.math.BigDecimal;
+import java.util.Date;
+//import org.mongodb.morphia.annotations.Entity;
+//import org.mongodb.morphia.annotations.Id;
+//import org.mongodb.morphia.annotations.Indexed;
+//import org.mongodb.morphia.annotations.Reference;
 
 @Entity(value="user_pajaks")
 public class UserPajak {
@@ -20,11 +25,14 @@ public class UserPajak {
     private String behind_degree;
     private String nip_simsdm; // ok
     private String nip_gpp; // ok
-    @Reference
-    private BasicDBList pendapatan_tetap;
-    @Reference
-    private BasicDBList pendapatan_tdk_tetap; //ok
-    private BasicDBList pendapatan_batal;
+    private Group group;
+//    private BasicDBObject unit;
+
+//    @Reference
+//    private BasicDBList pendapatan_tetap;
+//    @Reference
+//    private BasicDBList pendapatan_tdk_tetap; //ok
+//    private BasicDBList pendapatan_batal;
     /**
      * isi pendapatan_tdk_tetap:
      * 0. activity_id
@@ -50,101 +58,95 @@ public class UserPajak {
      *      12c. hasil
      * 13. update time
      */
-    private String netto_pendapatan_setahun; //ok
-    private String potongan_jabatan_A2_setahun;
-    private String potongan_jabatan_A1_setahun;
-    private String ptkp_setahun; //ok
-    private String sisa_ptkp; // ok
-    private String total_pkp;
-    private String reminder_pajak;
-    private String index_layer_pajak;
-    private String reminder_pajak_jasa_medis;
-    private String index_layer_pajak_jasa_medis;
-    private String total_pph21_usu;
-    private String total_pph21_usu_dibayar; //ok
-    private String total_pph21_pribadi; //ok
-    private String total_pph21_lebih_bayar;
-    private String total_pph21_kurang_bayar;
-    private String timestamp; //ok
+    private BigDecimal netto_pendapatan_setahun; //ok
+    private BigDecimal potongan_jabatan_A2_setahun;
+    private BigDecimal potongan_jabatan_A1_setahun;
+    private BigDecimal ptkp_setahun; //ok
+    private BigDecimal sisa_ptkp; // ok
+    private BigDecimal total_pkp;
+    private BigDecimal reminder_pajak;
+    private Integer index_layer_pajak;
+    private BigDecimal reminder_pajak_jasa_medis;
+    private Integer index_layer_pajak_jasa_medis;
+    private BigDecimal total_pph21_usu;
+    private BigDecimal total_pph21_usu_dibayar; //ok
+    private BigDecimal total_pph21_pribadi; //ok
+    private BigDecimal total_pph21_lebih_bayar;
+    private BigDecimal total_pph21_kurang_bayar;
+    private Date lastUpdate = new Date();
+    @PrePersist
+    void prePersist() {lastUpdate = new Date();}
 
-    public String getReminder_pajak_jasa_medis() {
+    public Group getGroup() {
+        return group;
+    }
+
+    public void setGroup(Group group) {
+        this.group = group;
+    }
+
+    public BigDecimal getReminder_pajak_jasa_medis() {
         return reminder_pajak_jasa_medis;
     }
 
-    public String getIndex_layer_pajak_jasa_medis() {
+    public Integer getIndex_layer_pajak_jasa_medis() {
         return index_layer_pajak_jasa_medis;
     }
 
-    public void setIndex_layer_pajak_jasa_medis(String index_layer_pajak_jasa_medis) {
+    public void setIndex_layer_pajak_jasa_medis(Integer index_layer_pajak_jasa_medis) {
         this.index_layer_pajak_jasa_medis = index_layer_pajak_jasa_medis;
     }
 
-    public void setReminder_pajak_jasa_medis(String reminder_pajak_jasa_medis) {
+    public void setReminder_pajak_jasa_medis(BigDecimal reminder_pajak_jasa_medis) {
         this.reminder_pajak_jasa_medis = reminder_pajak_jasa_medis;
     }
 
-    public BasicDBList getPendapatan_batal() {
-        return pendapatan_batal;
-    }
-
-    public void setPendapatan_batal(BasicDBList pendapatan_batal) {
-        this.pendapatan_batal = pendapatan_batal;
-    }
-
-    public void setTotal_pph21_kurang_bayar(String total_pph21_kurang_bayar) {
+    public void setTotal_pph21_kurang_bayar(BigDecimal total_pph21_kurang_bayar) {
         this.total_pph21_kurang_bayar = total_pph21_kurang_bayar;
     }
 
-    public void setTotal_pph21_lebih_bayar(String total_pph21_lebih_bayar) {
+    public void setTotal_pph21_lebih_bayar(BigDecimal total_pph21_lebih_bayar) {
         this.total_pph21_lebih_bayar = total_pph21_lebih_bayar;
     }
 
-    public String getTotal_pph21_lebih_bayar() {
+    public BigDecimal getTotal_pph21_lebih_bayar() {
         return total_pph21_lebih_bayar;
     }
 
-    public String getTotal_pph21_kurang_bayar() {
+    public BigDecimal getTotal_pph21_kurang_bayar() {
         return total_pph21_kurang_bayar;
     }
 
-    public void setPotongan_jabatan_A1_setahun(String potongan_jabatan_A1_setahun) {
+    public void setPotongan_jabatan_A1_setahun(BigDecimal potongan_jabatan_A1_setahun) {
         this.potongan_jabatan_A1_setahun = potongan_jabatan_A1_setahun;
     }
 
-    public void setPotongan_jabatan_A2_setahun(String potongan_jabatan_A2_setahun) {
+    public void setPotongan_jabatan_A2_setahun(BigDecimal potongan_jabatan_A2_setahun) {
         this.potongan_jabatan_A2_setahun = potongan_jabatan_A2_setahun;
     }
 
-    public String getPotongan_jabatan_A1_setahun() {
+    public BigDecimal getPotongan_jabatan_A1_setahun() {
         return potongan_jabatan_A1_setahun;
     }
 
-    public String getPotongan_jabatan_A2_setahun() {
+    public BigDecimal getPotongan_jabatan_A2_setahun() {
         return potongan_jabatan_A2_setahun;
     }
 
-    public void setIndex_layer_pajak(String index_layer_pajak) {
+    public void setIndex_layer_pajak(Integer index_layer_pajak) {
         this.index_layer_pajak = index_layer_pajak;
     }
 
-    public void setReminder_pajak(String reminder_pajak) {
+    public void setReminder_pajak(BigDecimal reminder_pajak) {
         this.reminder_pajak = reminder_pajak;
     }
 
-    public String getIndex_layer_pajak() {
+    public Integer getIndex_layer_pajak() {
         return index_layer_pajak;
     }
 
-    public String getReminder_pajak() {
+    public BigDecimal getReminder_pajak() {
         return reminder_pajak;
-    }
-
-    public BasicDBList getPendapatan_tetap() {
-        return pendapatan_tetap;
-    }
-
-    public void setPendapatan_tetap(BasicDBList pendapatan_tetap) {
-        this.pendapatan_tetap = pendapatan_tetap;
     }
 
     public String getNpwp_simsdm() {
@@ -155,19 +157,19 @@ public class UserPajak {
         this.npwp_simsdm = npwp_simsdm;
     }
 
-    public String getTotal_pph21_usu_dibayar() {
+    public BigDecimal getTotal_pph21_usu_dibayar() {
         return total_pph21_usu_dibayar;
     }
 
-    public void setTotal_pph21_usu_dibayar(String total_pph21_usu_dibayar) {
+    public void setTotal_pph21_usu_dibayar(BigDecimal total_pph21_usu_dibayar) {
         this.total_pph21_usu_dibayar = total_pph21_usu_dibayar;
     }
 
-    public void setTotal_pkp(String total_pkp) {
+    public void setTotal_pkp(BigDecimal total_pkp) {
         this.total_pkp = total_pkp;
     }
 
-    public String getTotal_pkp() {
+    public BigDecimal getTotal_pkp() {
         return total_pkp;
     }
 
@@ -187,19 +189,19 @@ public class UserPajak {
         return front_degree;
     }
 
-    public String getPtkp_setahun() {
+    public BigDecimal getPtkp_setahun() {
         return ptkp_setahun;
     }
 
-    public void setPtkp_setahun(String ptkp_setahun) {
+    public void setPtkp_setahun(BigDecimal ptkp_setahun) {
         this.ptkp_setahun = ptkp_setahun;
     }
 
-    public String getNetto_pendapatan_setahun() {
+    public BigDecimal getNetto_pendapatan_setahun() {
         return netto_pendapatan_setahun;
     }
 
-    public void setNetto_pendapatan_setahun(String netto_pendapatan_setahun) {
+    public void setNetto_pendapatan_setahun(BigDecimal netto_pendapatan_setahun) {
         this.netto_pendapatan_setahun = netto_pendapatan_setahun;
     }
 
@@ -223,12 +225,8 @@ public class UserPajak {
         this.npwp = npwp;
     }
 
-    public void setSisa_ptkp(String sisa_ptkp) {
+    public void setSisa_ptkp(BigDecimal sisa_ptkp) {
         this.sisa_ptkp = sisa_ptkp;
-    }
-
-    public void setPendapatan_tdk_tetap(BasicDBList pendapatan_tdk_tetap) {
-        this.pendapatan_tdk_tetap = pendapatan_tdk_tetap;
     }
 
     public void setId(ObjectId id) {
@@ -243,15 +241,11 @@ public class UserPajak {
         this.id_user = id_user;
     }
 
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public void setTotal_pph21_pribadi(String total_pph21_pribadi) {
+    public void setTotal_pph21_pribadi(BigDecimal total_pph21_pribadi) {
         this.total_pph21_pribadi = total_pph21_pribadi;
     }
 
-    public void setTotal_pph21_usu(String total_pph21_usu) {
+    public void setTotal_pph21_usu(BigDecimal total_pph21_usu) {
         this.total_pph21_usu = total_pph21_usu;
     }
 
@@ -267,27 +261,19 @@ public class UserPajak {
         return id;
     }
 
-    public String getTimestamp() {
-        return timestamp;
-    }
-
     public String getId_user() {
         return id_user;
     }
 
-    public BasicDBList getPendapatan_tdk_tetap() {
-        return pendapatan_tdk_tetap;
-    }
-
-    public String getSisa_ptkp() {
+    public BigDecimal getSisa_ptkp() {
         return sisa_ptkp;
     }
 
-    public String getTotal_pph21_pribadi() {
+    public BigDecimal getTotal_pph21_pribadi() {
         return total_pph21_pribadi;
     }
 
-    public String getTotal_pph21_usu() {
+    public BigDecimal getTotal_pph21_usu() {
         return total_pph21_usu;
     }
 }

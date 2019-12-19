@@ -5,8 +5,10 @@ import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
+//import org.mongodb.morphia.Datastore;
+//import org.mongodb.morphia.Morphia;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
 import usu.pajak.model.UserPajak;
 
 import java.math.BigDecimal;

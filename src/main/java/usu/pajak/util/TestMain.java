@@ -6,9 +6,9 @@ import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.query.UpdateOperations;
+//import org.mongodb.morphia.Datastore;
+//import org.mongodb.morphia.Morphia;
+//import org.mongodb.morphia.query.UpdateOperations;
 import usu.pajak.model.UserPajak;
 import usu.pajak.services.ApiRka;
 

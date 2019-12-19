@@ -1,4 +1,4 @@
-package usu.pajak.model;
+package usu.pajak.fariz.model;
 
 import com.mongodb.BasicDBObject;
 import dev.morphia.annotations.Entity;
@@ -9,8 +9,8 @@ import org.bson.types.ObjectId;
 //import org.mongodb.morphia.annotations.Id;
 //import org.mongodb.morphia.annotations.Reference;
 
-@Entity(value="pendapatan_tetaps")
-public class PendapatanTetaps extends BasicDBObject {
+@Entity(value="user_pajaks")
+public class PendapatanTdkTetaps {
     @Id
     private ObjectId id;
     @Reference

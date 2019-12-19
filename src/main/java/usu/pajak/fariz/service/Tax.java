@@ -123,32 +123,7 @@ public class Tax {
                 totalPendapatanSementara = totalPendapatanSementara.add(StaticValue.jkk).add(StaticValue.jkm).add(StaticValue.bpjs_kesehatan);
                 pajak.setBruto_pendapatan(totalPendapatanSementara);
 
-                BigDecimal biayaJabatan = totalPendapatanSementara.multiply(StaticValue.persenBiayaJabatan);
-                if(userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun() == null){
-                    if (biayaJabatan.compareTo(StaticValue.limitBiayaJabatan) <= 0) {
-                        pajak.setBiaya_jabatan(biayaJabatan);
-                        userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(biayaJabatan);
-                    }else {
-                        biayaJabatan = BigDecimal.ZERO;
-                        pajak.setBiaya_jabatan(biayaJabatan);
-                        userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(StaticValue.limitBiayaJabatan);
-                    }
-                }else{
-                    if(userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun().compareTo(StaticValue.limitBiayaJabatan)<0){
-                        if(userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun().add(biayaJabatan).compareTo(StaticValue.limitBiayaJabatan)<0){
-                            userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(
-                                    userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun().add(biayaJabatan));
-                        }else{
-                            biayaJabatan = StaticValue.limitBiayaJabatan.subtract(userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun());
-                            userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(StaticValue.limitBiayaJabatan);
-                        }
-                    }else{
-                        biayaJabatan = BigDecimal.ZERO;
-                        pajak.setBiaya_jabatan(biayaJabatan);
-                        userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(StaticValue.limitBiayaJabatan);
-                    }
-                }
-
+                BigDecimal biayaJabatan = setBiayaJabatan(totalPendapatanSementara,userPajak,pajak);
 
                 BigDecimal nettoPendapatan = totalPendapatanSementara.subtract(biayaJabatan);
                 pajak.setNetto_pendapatan(nettoPendapatan);
@@ -227,13 +202,8 @@ public class Tax {
                     t.hitungPajak(reminder,pkpSetahun,index, TarifPajak.LAYER_SETAHUN, usu.pajak.model.TarifPajak.TARIF_NPWP, true);
                 }
 
-
                 BasicDBList listPph21 = t.getListPph21();
-                BigDecimal total_pph21_sementara = new BigDecimal(0.00);
-                for(int i=0;i<listPph21.size();i++) {
-                    BasicDBObject obj = (BasicDBObject) listPph21.get(i);
-                    total_pph21_sementara = total_pph21_sementara.add(new BigDecimal(obj.getString("_hasil")));
-                }
+                BigDecimal total_pph21_sementara = sumPPH21(listPph21);
 
                 pajak.setNetto_take_homepay(totalPendapatanSementara.subtract(total_pph21_sementara));
                 pajak.setPph21(listPph21);
@@ -246,8 +216,6 @@ public class Tax {
                 }else {
                     userPajak.getPph21().setUsu(userPajak.getPph21().getUsu().add(total_pph21_sementara));
                 }
-//                userPajak.getPph21().setLebih_bayar(BigDecimal.ZERO);
-//                userPajak.getPph21().setKurang_bayar(BigDecimal.ZERO);
 
                 datastore.save(userPajak);
                 datastore.save(pendapatanTetaps);
@@ -265,14 +233,43 @@ public class Tax {
                     if(tBefore.compareTo(tNow)==0){ // just input not updating netto setahun
                         PendapatanTetaps pendapatanTetaps = initializePendapatanTetap(sd, userPajak);
 
-                    }else{ // there is some difference
+                        Pajak pajak = pBefore.getPajak();
 
+                        BigDecimal biayaJabatan = setBiayaJabatan(tNow,userPajak,pajak);
+                        BigDecimal nettoPendapatan = tNow.subtract(biayaJabatan);
+                        pajak.setNetto_pendapatan(nettoPendapatan);
+
+                        pendapatanTetaps.setMonth(Integer.parseInt(sd.getPayment().getAsJsonObject().get("request").getAsJsonObject().get("updated_time").getAsString().split(" ")[0].split("-")[1]));
+                        pendapatanTetaps.setYear(Integer.parseInt(sd.getPayment().getAsJsonObject().get("request").getAsJsonObject().get("updated_time").getAsString().split(" ")[0].split("-")[0]));
+
+                        pendapatanTetaps.setPajak(pajak);
+                        pendapatanTetaps.setStatus(true);
+                        userPajak.getPph21().setUsu(userPajak.getPph21().getUsu().add(sumPPH21(pajak.getPph21())));
+
+                        datastore.save(userPajak);
+                        datastore.save(pendapatanTetaps);
+                    }else{ // there is some difference
+                        //jika lebih dari sebelumya hanya hitung yg berlebihnya saja
+                        //jika kurang dari sebelumnya ga tau mau di apain
                     }
                 }else{ //salary sudah ada (salary duplicate)
-
+                    // kirim hasil pph 21 ke RKA
                 }
             }
         });
+    }
+
+    private void calculateTaxHonor(){
+
+    }
+
+    private BigDecimal sumPPH21(BasicDBList listPph21){
+        BigDecimal total_pph21_sementara = BigDecimal.ZERO;
+        for(int i=0;i<listPph21.size();i++) {
+            BasicDBObject obj = (BasicDBObject) listPph21.get(i);
+            total_pph21_sementara = total_pph21_sementara.add(new BigDecimal(obj.getString("_hasil")));
+        }
+        return total_pph21_sementara;
     }
 
     private PendapatanTetaps initializePendapatanTetap(SalaryDetail sd, UserPajak userPajak) {
@@ -283,10 +280,6 @@ public class Tax {
         BasicDBObject rkaPayment = BasicDBObject.parse(sd.getPayment().getAsJsonObject().toString());
         pendapatanTetaps.setRka_payment(rkaPayment);
         return  pendapatanTetaps;
-    }
-
-    private void calculateTaxHonor(){
-
     }
 
     private BigDecimal getPendapatanSementara(SalaryDetail sd){
@@ -305,5 +298,34 @@ public class Tax {
                     else
                         return 0;
                 }).sum() - sd.getPayment().getAsJsonObject().get("returned").getAsInt());
+    }
+
+    private BigDecimal setBiayaJabatan(BigDecimal totalPendapatanSementara, UserPajak userPajak, Pajak pajak){
+        BigDecimal biayaJabatan = totalPendapatanSementara.multiply(StaticValue.persenBiayaJabatan);
+        if(userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun() == null){
+            if (biayaJabatan.compareTo(StaticValue.limitBiayaJabatan) <= 0) {
+                pajak.setBiaya_jabatan(biayaJabatan);
+                userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(biayaJabatan);
+            }else {
+                biayaJabatan = BigDecimal.ZERO;
+                pajak.setBiaya_jabatan(biayaJabatan);
+                userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(StaticValue.limitBiayaJabatan);
+            }
+        }else{
+            if(userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun().compareTo(StaticValue.limitBiayaJabatan)<0){
+                if(userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun().add(biayaJabatan).compareTo(StaticValue.limitBiayaJabatan)<0){
+                    userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(
+                            userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun().add(biayaJabatan));
+                }else{
+                    biayaJabatan = StaticValue.limitBiayaJabatan.subtract(userPajak.getTotal_pendapatan().getBiaya_jabatan_setahun());
+                    userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(StaticValue.limitBiayaJabatan);
+                }
+            }else{
+                biayaJabatan = BigDecimal.ZERO;
+                pajak.setBiaya_jabatan(biayaJabatan);
+                userPajak.getTotal_pendapatan().setBiaya_jabatan_setahun(StaticValue.limitBiayaJabatan);
+            }
+        }
+        return biayaJabatan;
     }
 }

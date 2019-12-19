@@ -22,7 +22,7 @@ public class Tax {
     private Datastore datastore;
 
     public static void main(String[] args) throws IOException {
-        Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?request_id=1030","GET"),Salary.class);
+        Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?request_id=2397","GET"),Salary.class);
         new Tax(salary);
     }
 
@@ -77,7 +77,7 @@ public class Tax {
                 }
 
                 if(honor.size() > 0){
-//                    calculateTaxSalary(honor);
+                    calculateTaxHonor(honor);
                 }
             }else{ }
         }else{ }
@@ -85,26 +85,7 @@ public class Tax {
 
     private void calculateTaxSalary(List<SalaryDetail> salaryDetailList){
         salaryDetailList.forEach(sd -> {
-            Query<UserPajak> query = datastore.createQuery(UserPajak.class).filter("id_user", sd.getUser().getId().toString());
-            UserPajak userPajak = query.first();
-            if(userPajak!=null){ // update data
-                if(userPajak.getNpwp_simsdm()==null) {userPajak.setNpwp_simsdm(sd.getUser().getNpwp());}
-                else if (userPajak.getNpwp_simsdm().isEmpty()) {userPajak.setNpwp_simsdm(sd.getUser().getNpwp());}
-
-            }else{ // insert data
-                userPajak = new UserPajak();
-                userPajak.setId_user(sd.getUser().getId().toString());
-                userPajak.setNpwp("");
-                userPajak.setNpwp_simsdm(sd.getUser().getNpwp());
-                userPajak.setFront_degree(sd.getUser().getFront_degree());
-                userPajak.setFull_name(sd.getUser().getFull_name());
-                userPajak.setBehind_degree(sd.getUser().getBehind_degree());
-                userPajak.setNip_simsdm(sd.getUser().getNip_nik().toString());
-                userPajak.setGroup(sd.getUser().getGroup());
-                userPajak.setTotal_pendapatan(new UserPajakPendapatan());
-                userPajak.setSetting_pajak(new UserPajakTax());
-                userPajak.setPph21(new UserPajakPPH());
-            }
+            UserPajak userPajak = getUserPajak(sd);
 
             Query<PendapatanTetaps> qPt = datastore.createQuery(PendapatanTetaps.class)
                     .disableValidation()
@@ -250,7 +231,7 @@ public class Tax {
                         datastore.save(pendapatanTetaps);
                     }else{ // there is some difference
                         //jika lebih dari sebelumya hanya hitung yg berlebihnya saja
-                        //jika kurang dari sebelumnya ga tau mau di apain
+                        //jika kurang dari sebelumnya ga tau mau diapain
                     }
                 }else{ //salary sudah ada (salary duplicate)
                     // kirim hasil pph 21 ke RKA
@@ -259,8 +240,52 @@ public class Tax {
         });
     }
 
-    private void calculateTaxHonor(){
+    private void calculateTaxHonor(List<SalaryDetail> salaryDetailList){
+        salaryDetailList.forEach(sd -> {
+            UserPajak userPajak = getUserPajak(sd);
 
+            Query<PendapatanTdkTetaps> qPt = datastore.createQuery(PendapatanTdkTetaps.class)
+                    .disableValidation()
+                    .filter("id_user", sd.getUser().getId().toString());
+            if(qPt.count()==0){
+                PendapatanTdkTetaps pendapatanTdkTetaps = initializePendapatanTdkTetap(sd, userPajak);
+                BigDecimal totalPendapatanSementara = getPendapatanSementara(sd);
+                Pajak pajak = new Pajak();
+                pajak.setTotal_pendapatan_rka(totalPendapatanSementara);
+                pajak.setBruto_pendapatan(totalPendapatanSementara);
+
+                BigDecimal biayaJabatan = setBiayaJabatan(totalPendapatanSementara,userPajak,pajak);
+
+                BigDecimal nettoPendapatan = totalPendapatanSementara.subtract(biayaJabatan);
+                pajak.setNetto_pendapatan(nettoPendapatan);
+
+            }else{
+
+            }
+        });
+    }
+
+    private UserPajak getUserPajak(SalaryDetail sd){
+        Query<UserPajak> query = datastore.createQuery(UserPajak.class).filter("id_user", sd.getUser().getId().toString());
+        UserPajak userPajak = query.first();
+        if(userPajak!=null) { // update data
+            if(userPajak.getNpwp_simsdm()==null) {userPajak.setNpwp_simsdm(sd.getUser().getNpwp());}
+            else if (userPajak.getNpwp_simsdm().isEmpty()) {userPajak.setNpwp_simsdm(sd.getUser().getNpwp());}
+        }else{//insert data
+            userPajak = new UserPajak();
+            userPajak.setId_user(sd.getUser().getId().toString());
+            userPajak.setNpwp("");
+            userPajak.setNpwp_simsdm(sd.getUser().getNpwp());
+            userPajak.setFront_degree(sd.getUser().getFront_degree());
+            userPajak.setFull_name(sd.getUser().getFull_name());
+            userPajak.setBehind_degree(sd.getUser().getBehind_degree());
+            userPajak.setNip_simsdm(sd.getUser().getNip_nik().toString());
+            userPajak.setGroup(sd.getUser().getGroup());
+            userPajak.setTotal_pendapatan(new UserPajakPendapatan());
+            userPajak.setSetting_pajak(new UserPajakTax());
+            userPajak.setPph21(new UserPajakPPH());
+        }
+        return userPajak;
     }
 
     private BigDecimal sumPPH21(BasicDBList listPph21){
@@ -280,6 +305,16 @@ public class Tax {
         BasicDBObject rkaPayment = BasicDBObject.parse(sd.getPayment().getAsJsonObject().toString());
         pendapatanTetaps.setRka_payment(rkaPayment);
         return  pendapatanTetaps;
+    }
+
+    private PendapatanTdkTetaps initializePendapatanTdkTetap(SalaryDetail sd, UserPajak userPajak){
+        PendapatanTdkTetaps pendapatanTdkTetaps = new PendapatanTdkTetaps();
+        pendapatanTdkTetaps.setId_user(userPajak.getId_user());
+        pendapatanTdkTetaps.setSalary_id(sd.getId().intValue());
+        pendapatanTdkTetaps.setUnit(sd.getUnit());
+        BasicDBObject rkaPayment = BasicDBObject.parse(sd.getPayment().getAsJsonObject().toString());
+        pendapatanTdkTetaps.setRka_payment(rkaPayment);
+        return  pendapatanTdkTetaps;
     }
 
     private BigDecimal getPendapatanSementara(SalaryDetail sd){

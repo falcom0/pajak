@@ -4,10 +4,19 @@ import java.math.BigDecimal;
 
 public class UserPajakPPH {
     private BigDecimal usu;
+    private BigDecimal jasa;
     private BigDecimal pns;
     private BigDecimal pribadi;
     private BigDecimal lebih_bayar;
     private BigDecimal kurang_bayar;
+
+    public BigDecimal getJasa() {
+        return jasa;
+    }
+
+    public void setJasa(BigDecimal jasa) {
+        this.jasa = jasa;
+    }
 
     public BigDecimal getKurang_bayar() {
         return kurang_bayar;

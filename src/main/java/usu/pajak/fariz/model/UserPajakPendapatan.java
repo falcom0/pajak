@@ -4,10 +4,28 @@ import java.math.BigDecimal;
 
 public class UserPajakPendapatan {
     private BigDecimal netto_pendapatan_setahun; //-
+    private BigDecimal bruto_jasa_setahun;
     private BigDecimal biaya_jabatan_setahun; //-
     private BigDecimal ptkp_setahun; //-
     private BigDecimal sisa_ptkp; // -
     private BigDecimal total_pkp;// -
+    private BigDecimal total_pkp_jasa;
+
+    public BigDecimal getBruto_jasa_setahun() {
+        return bruto_jasa_setahun;
+    }
+
+    public void setBruto_jasa_setahun(BigDecimal bruto_jasa_setahun) {
+        this.bruto_jasa_setahun = bruto_jasa_setahun;
+    }
+
+    public BigDecimal getTotal_pkp_jasa() {
+        return total_pkp_jasa;
+    }
+
+    public void setTotal_pkp_jasa(BigDecimal total_pkp_jasa) {
+        this.total_pkp_jasa = total_pkp_jasa;
+    }
 
     public BigDecimal getNetto_pendapatan_setahun() {
         return netto_pendapatan_setahun;

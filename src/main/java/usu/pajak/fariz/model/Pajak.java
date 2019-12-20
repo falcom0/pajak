@@ -16,9 +16,18 @@ public class Pajak {
     private BigDecimal netto_pendapatan;
     private BigDecimal netto_take_homepay;
     private BasicDBList pph21;
+    private UserPajakTax _recordCalTax;
 
     public BasicDBList getPph21() {
         return pph21;
+    }
+
+    public UserPajakTax get_recordCalTax() {
+        return _recordCalTax;
+    }
+
+    public void set_recordCalTax(UserPajakTax _recordCalTax) {
+        this._recordCalTax = _recordCalTax;
     }
 
     public void setPph21(BasicDBList pph21) {

@@ -38,7 +38,7 @@ public class TarifPajak {
                 pkp = pkp.subtract(reminderPajak);
 
                 BasicDBObject bTarif = new BasicDBObject();
-                bTarif.put("_tarif",tarif[index].toString());
+                bTarif.put("_tarif",tarif[index]);
 
                 if(rutin) {
                     bTarif.put("_pkp", reminderPajak.divide(new BigDecimal("12.00"), 2, BigDecimal.ROUND_HALF_UP));

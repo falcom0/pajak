@@ -18,6 +18,7 @@ public class UserPajakPPH {
         this.jasa = jasa;
     }
 
+
     public BigDecimal getKurang_bayar() {
         return kurang_bayar;
     }

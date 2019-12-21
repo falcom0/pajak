@@ -20,11 +20,20 @@ public class PendapatanTetaps {
     private Integer month;
     private Integer year;
     private BasicDBObject rka_payment;
+    private BasicDBObject apbn_payment;
     private Pajak pajak;
     private Boolean status;
     private Date lastUpdated = new Date();
     @PrePersist
     void prePersist() {lastUpdated = new Date();}
+
+    public BasicDBObject getApbn_payment() {
+        return apbn_payment;
+    }
+
+    public void setApbn_payment(BasicDBObject apbn_payment) {
+        this.apbn_payment = apbn_payment;
+    }
 
     public Integer getMonth() {
         return month;

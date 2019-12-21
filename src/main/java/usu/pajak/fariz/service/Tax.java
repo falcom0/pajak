@@ -3,6 +3,7 @@ package usu.pajak.fariz.service;
 import com.google.gson.Gson;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
+import com.sun.xml.internal.bind.v2.TODO;
 import dev.morphia.Datastore;
 import dev.morphia.query.Query;
 import usu.pajak.fariz.model.*;
@@ -186,11 +187,19 @@ public class Tax {
                         datastore.save(userPajak);
                         datastore.save(pendapatanTetaps);
                     }else{ // there is some difference
-                        //jika lebih dari sebelumya hanya hitung yg berlebihnya saja
-                        //jika kurang dari sebelumnya ga tau mau diapain
+                        /**
+                         * TODO
+                         *
+                         * jika lebih dari sebelumya hanya hitung yg berlebihnya saja
+                         * jika kurang dari sebelumnya ga tau mau diapain
+                         */
                     }
                 }else{ //salary sudah ada (salary duplicate)
-                    // kirim hasil pph 21 ke RKA
+                    /**
+                     * TODO
+                     *
+                     * kirim hasil pph 21 ke RKA
+                     */
                 }
             }
         });
@@ -202,8 +211,9 @@ public class Tax {
 
             Query<PendapatanTdkTetaps> qPt = datastore.createQuery(PendapatanTdkTetaps.class)
                     .disableValidation()
-                    .filter("id_user", sd.getUser().getId().toString());
-//            if(qPt==null){
+                    .filter("id_user", sd.getUser().getId().toString())
+                    .filter("salary_id", sd.getId().toString());
+            if(qPt==null){
                 PendapatanTdkTetaps pendapatanTdkTetaps = initializePendapatanTdkTetap(sd, userPajak);
                 BigDecimal totalPendapatanSementara = getPendapatanSementara(sd);
                 Pajak pajak = new Pajak();
@@ -251,9 +261,13 @@ public class Tax {
 
                 datastore.save(userPajak);
                 datastore.save(pendapatanTdkTetaps);
-//            }else{
-//
-//            }
+            }else{ //duplicate request
+                /**
+                 * TODO
+                 *
+                 * kirim hasil pph 21 ke RKA
+                 */
+            }
         });
     }
 
@@ -261,59 +275,71 @@ public class Tax {
         salaryDetailList.forEach(sd -> {
             UserPajak userPajak = getUserPajak(sd);
 
-            PendapatanTdkTetaps pendapatanTdkTetaps = initializePendapatanTdkTetap(sd, userPajak);
+            Query<PendapatanTdkTetaps> qPt = datastore.createQuery(PendapatanTdkTetaps.class)
+                    .disableValidation()
+                    .filter("id_user", sd.getUser().getId().toString())
+                    .filter("salary_id", sd.getId().toString());
+            if(qPt==null) {
+                PendapatanTdkTetaps pendapatanTdkTetaps = initializePendapatanTdkTetap(sd, userPajak);
 
-            BigDecimal brutoPendapatan = getPendapatanSementara(sd);
+                BigDecimal brutoPendapatan = getPendapatanSementara(sd);
 
-            Pajak pajak = new Pajak();
-            pajak.setTotal_pendapatan_rka(brutoPendapatan);
-            pajak.setBruto_pendapatan(brutoPendapatan);
+                Pajak pajak = new Pajak();
+                pajak.setTotal_pendapatan_rka(brutoPendapatan);
+                pajak.setBruto_pendapatan(brutoPendapatan);
 //            pajak.setNetto_pendapatan(brutoPendapatan);
 
-            BigDecimal ptkpSetahun = new BigDecimal(Ptkp.getInstance.getPtkp(sd.getUser().getId().toString()));
-            if(userPajak.getTotal_pendapatan().getPtkp_setahun() == null)
-                userPajak.getTotal_pendapatan().setPtkp_setahun(ptkpSetahun);
+                BigDecimal ptkpSetahun = new BigDecimal(Ptkp.getInstance.getPtkp(sd.getUser().getId().toString()));
+                if (userPajak.getTotal_pendapatan().getPtkp_setahun() == null)
+                    userPajak.getTotal_pendapatan().setPtkp_setahun(ptkpSetahun);
 
-            pendapatanTdkTetaps.setMonth(Integer.parseInt(sd.getPayment().getAsJsonObject().get("request").getAsJsonObject().get("updated_time").getAsString().split(" ")[0].split("-")[1]));
-            pendapatanTdkTetaps.setYear(Integer.parseInt(sd.getPayment().getAsJsonObject().get("request").getAsJsonObject().get("updated_time").getAsString().split(" ")[0].split("-")[0]));
+                pendapatanTdkTetaps.setMonth(Integer.parseInt(sd.getPayment().getAsJsonObject().get("request").getAsJsonObject().get("updated_time").getAsString().split(" ")[0].split("-")[1]));
+                pendapatanTdkTetaps.setYear(Integer.parseInt(sd.getPayment().getAsJsonObject().get("request").getAsJsonObject().get("updated_time").getAsString().split(" ")[0].split("-")[0]));
 
-            if(userPajak.getTotal_pendapatan().getBruto_jasa_setahun() == null)
-                userPajak.getTotal_pendapatan().setBruto_jasa_setahun(brutoPendapatan);
-            else
-                userPajak.getTotal_pendapatan().setBruto_jasa_setahun(
-                        userPajak.getTotal_pendapatan().getBruto_jasa_setahun().add(brutoPendapatan)
-                );
+                if (userPajak.getTotal_pendapatan().getBruto_jasa_setahun() == null)
+                    userPajak.getTotal_pendapatan().setBruto_jasa_setahun(brutoPendapatan);
+                else
+                    userPajak.getTotal_pendapatan().setBruto_jasa_setahun(
+                            userPajak.getTotal_pendapatan().getBruto_jasa_setahun().add(brutoPendapatan)
+                    );
 
-            BigDecimal pkp = brutoPendapatan.multiply(new BigDecimal(0.5));
-            if(userPajak.getTotal_pendapatan().getTotal_pkp_jasa() == null)
-                userPajak.getTotal_pendapatan().setTotal_pkp_jasa(pkp);
-            else
-                userPajak.getTotal_pendapatan().setTotal_pkp_jasa(
-                        userPajak.getTotal_pendapatan().getTotal_pkp_jasa().add(pkp)
-                );
+                BigDecimal pkp = brutoPendapatan.multiply(new BigDecimal(0.5));
+                if (userPajak.getTotal_pendapatan().getTotal_pkp_jasa() == null)
+                    userPajak.getTotal_pendapatan().setTotal_pkp_jasa(pkp);
+                else
+                    userPajak.getTotal_pendapatan().setTotal_pkp_jasa(
+                            userPajak.getTotal_pendapatan().getTotal_pkp_jasa().add(pkp)
+                    );
 
-            TarifPajak t = resultTaxJasa(userPajak, pkp);
-            BigDecimal total_pph21_sementara = sumPPH21(t.getListPph21());
+                TarifPajak t = resultTaxJasa(userPajak, pkp);
+                BigDecimal total_pph21_sementara = sumPPH21(t.getListPph21());
 
-            pajak.setNetto_take_homepay(brutoPendapatan.subtract(total_pph21_sementara));
-            pajak.setPph21(t.getListPph21());
-            UserPajakTax upt = new UserPajakTax();
-            upt.setIndex_jasmed(t.getIndex());
-            upt.setReminder_jasmed(t.getReminderPajak());
-            pajak.set_recordCalTax(upt);
-            userPajak.getSetting_pajak().setReminder_jasmed(t.getReminderPajak());
-            userPajak.getSetting_pajak().setIndex_jasmed(t.getIndex());
-            pendapatanTdkTetaps.setPajak(pajak);
-            pendapatanTdkTetaps.setStatus(true);
+                pajak.setNetto_take_homepay(brutoPendapatan.subtract(total_pph21_sementara));
+                pajak.setPph21(t.getListPph21());
+                UserPajakTax upt = new UserPajakTax();
+                upt.setIndex_jasmed(t.getIndex());
+                upt.setReminder_jasmed(t.getReminderPajak());
+                pajak.set_recordCalTax(upt);
+                userPajak.getSetting_pajak().setReminder_jasmed(t.getReminderPajak());
+                userPajak.getSetting_pajak().setIndex_jasmed(t.getIndex());
+                pendapatanTdkTetaps.setPajak(pajak);
+                pendapatanTdkTetaps.setStatus(true);
 
-            if(userPajak.getPph21().getJasa()==null) {
-                userPajak.getPph21().setJasa(total_pph21_sementara);
-            }else {
-                userPajak.getPph21().setJasa(userPajak.getPph21().getUsu().add(total_pph21_sementara));
+                if (userPajak.getPph21().getJasa() == null) {
+                    userPajak.getPph21().setJasa(total_pph21_sementara);
+                } else {
+                    userPajak.getPph21().setJasa(userPajak.getPph21().getUsu().add(total_pph21_sementara));
+                }
+
+                datastore.save(userPajak);
+                datastore.save(pendapatanTdkTetaps);
+            }else{//duplicate request
+                /**
+                 * TODO
+                 *
+                 * kirim hasil pph 21 ke RKA
+                 */
             }
-
-            datastore.save(userPajak);
-            datastore.save(pendapatanTdkTetaps);
         });
     }
 

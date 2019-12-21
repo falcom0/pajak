@@ -3,13 +3,22 @@ package usu.pajak.fariz.model;
 import java.math.BigDecimal;
 
 public class UserPajakPendapatan {
-    private BigDecimal netto_pendapatan_setahun; //-
+    private BigDecimal netto_pendapatan_setahun;
     private BigDecimal bruto_jasa_setahun;
-    private BigDecimal biaya_jabatan_setahun; //-
-    private BigDecimal ptkp_setahun; //-
-    private BigDecimal sisa_ptkp; // -
-    private BigDecimal total_pkp;// -
+    private BigDecimal biaya_jabatan_setahun;
+    private BigDecimal jaminan_pensiun_ht_setahun;
+    private BigDecimal ptkp_setahun;
+    private BigDecimal sisa_ptkp;
+    private BigDecimal total_pkp;
     private BigDecimal total_pkp_jasa;
+
+    public BigDecimal getJaminan_pensiun_ht_setahun() {
+        return jaminan_pensiun_ht_setahun;
+    }
+
+    public void setJaminan_pensiun_ht_setahun(BigDecimal jaminan_pensiun_ht_setahun) {
+        this.jaminan_pensiun_ht_setahun = jaminan_pensiun_ht_setahun;
+    }
 
     public BigDecimal getBruto_jasa_setahun() {
         return bruto_jasa_setahun;

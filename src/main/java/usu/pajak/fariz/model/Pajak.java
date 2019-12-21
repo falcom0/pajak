@@ -13,10 +13,19 @@ public class Pajak {
     private BigDecimal bpjs_kesehatan;
     private BigDecimal bruto_pendapatan;
     private BigDecimal biaya_jabatan;
+    private BigDecimal jaminan_pensiun_ht;
     private BigDecimal netto_pendapatan;
     private BigDecimal netto_take_homepay;
     private BasicDBList pph21;
     private UserPajakTax _recordCalTax;
+
+    public BigDecimal getJaminan_pensiun_ht() {
+        return jaminan_pensiun_ht;
+    }
+
+    public void setJaminan_pensiun_ht(BigDecimal jaminan_pensiun_ht) {
+        this.jaminan_pensiun_ht = jaminan_pensiun_ht;
+    }
 
     public BasicDBList getPph21() {
         return pph21;

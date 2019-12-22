@@ -27,8 +27,8 @@ public class UserPajak {
     private String nip_gpp;
     private Group group;
     private UserPajakPendapatan total_pendapatan;
-    private UserPajakTax setting_pajak;//blm
-    private UserPajakPPH pph21;//blm
+    private UserPajakTax setting_pajak;
+    private UserPajakPPH pph21;
     private Date lastUpdate = new Date();
     @PrePersist
     void prePersist() {lastUpdate = new Date();}

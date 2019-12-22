@@ -40,7 +40,7 @@ public class User{
     }
 
     public String getNpwp() {
-        return npwp;
+        return npwp.replaceAll("-","").replaceAll(".","").replaceAll(",","").replaceAll(" ","").trim();
     }
 
     public void setId(BigInteger id) {

@@ -3,8 +3,8 @@ package usu.pajak.fariz.model;
 import java.math.BigDecimal;
 
 public class UserPajakTax {
-    private BigDecimal reminder;//blm
-    private Integer index;//blm
+    private BigDecimal reminder;
+    private Integer index;
     private BigDecimal reminder_jasmed;
     private Integer index_jasmed;
 

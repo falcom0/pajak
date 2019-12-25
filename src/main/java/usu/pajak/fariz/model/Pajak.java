@@ -1,8 +1,6 @@
 package usu.pajak.fariz.model;
 
 import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-
 import java.math.BigDecimal;
 
 public class Pajak {

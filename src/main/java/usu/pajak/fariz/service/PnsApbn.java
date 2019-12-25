@@ -80,7 +80,7 @@ public class PnsApbn {
 
                             BigDecimal nettoPendapatan;
 
-                            if(pendapatanTetaps.getPajak().getNetto_pendapatan().compareTo(pBefore.getPajak().getNetto_pendapatan())>0){ // jika pendapatan menaik
+                            /*if(pendapatanTetaps.getPajak().getNetto_pendapatan().compareTo(pBefore.getPajak().getNetto_pendapatan())>0){ // jika pendapatan menaik
                                 nettoPendapatan = pendapatanTetaps.getPajak().getNetto_pendapatan().subtract(pBefore.getPajak().getNetto_pendapatan());
                                 BigDecimal pkp = nettoPendapatan.multiply(BigDecimal.valueOf(13-bulan));
                                 userPajak.getTotal_pendapatan().setNetto_pendapatan_setahun(userPajak.getTotal_pendapatan().getNetto_pendapatan_setahun().add(pkp));
@@ -104,7 +104,25 @@ public class PnsApbn {
                                 pendapatanTetaps.getPajak().set_recordCalTax(pBefore.getPajak().get_recordCalTax());
                             }else{// jika pendapatan kurang dari sebelumnya
 
+                            }*/
+                            nettoPendapatan = pendapatanTetaps.getPajak().getNetto_pendapatan();
+                            BigDecimal pkp;
+                            userPajak.getTotal_pendapatan().setNetto_pendapatan_setahun(userPajak.getTotal_pendapatan().getNetto_pendapatan_setahun().add(nettoPendapatan));
+                            if(userPajak.getTotal_pendapatan().getTotal_pkp().compareTo(BigDecimal.ZERO)>0){
+                                userPajak.getTotal_pendapatan().setTotal_pkp(userPajak.getTotal_pendapatan().getTotal_pkp().add(nettoPendapatan));
+                                pkp = nettoPendapatan;
+                            }else{
+                                if(userPajak.getTotal_pendapatan().getSisa_ptkp().compareTo(nettoPendapatan)>=0){ // jika masih ada sisa ptkp
+                                    userPajak.getTotal_pendapatan().setSisa_ptkp(userPajak.getTotal_pendapatan().getSisa_ptkp().subtract(nettoPendapatan));
+                                    pkp = BigDecimal.ZERO;
+                                }else{ // jika habis
+                                    pkp = nettoPendapatan.subtract(userPajak.getTotal_pendapatan().getSisa_ptkp());
+                                    userPajak.getTotal_pendapatan().setSisa_ptkp(BigDecimal.ZERO);
+                                    userPajak.getTotal_pendapatan().setTotal_pkp(pkp);
+                                }
                             }
+
+                            calculatePajak(userPajak,pendapatanTetaps,pkp,userPajak.getSetting_pajak().getReminder(),userPajak.getSetting_pajak().getIndex());
 
                             if(userPajak.getPph21().getPns() != null)
                                 userPajak.getPph21().setPns(userPajak.getPph21().getPns().add(BigDecimal.valueOf(row.getCell(34).getNumericCellValue())));
@@ -327,7 +345,8 @@ public class PnsApbn {
                 ptkp = listDataKeluarga.get(nip);
 
             BigDecimal ptkpSetahun = new BigDecimal(ptkp.toString());
-            BigDecimal nettoPendapatanSetahun = pendapatanTetaps.getPajak().getNetto_pendapatan().multiply(BigDecimal.valueOf(13-bulan));
+//            BigDecimal nettoPendapatanSetahun = pendapatanTetaps.getPajak().getNetto_pendapatan().multiply(BigDecimal.valueOf(13-bulan));
+            BigDecimal nettoPendapatanSetahun = pendapatanTetaps.getPajak().getNetto_pendapatan();
             BigDecimal pkpSetahun,sisaPtkpSetahun;
 
             userPajak.getTotal_pendapatan().setPtkp_setahun(ptkpSetahun);

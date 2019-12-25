@@ -10,6 +10,7 @@ import usu.pajak.fariz.model.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -19,8 +20,22 @@ public class Tax {
 
     public static void main(String[] args) throws IOException {
         //request_id=13763
-        Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&user_id=3654","GET"),Salary.class); //13763
-        new Tax(salary);
+//        System.out.println(Ptkp.getInstance.getPtkp("3654"));
+
+//        Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&user_id=3654","GET"),Salary.class);
+//        new Tax(salary);
+
+        new PnsApbn();
+        for (int i=1;i<=6;i++) {
+            long start = System.currentTimeMillis();
+            Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&month="+i, "GET"), Salary.class); //13763
+            long end = System.currentTimeMillis();
+            System.out.println("Api bulan "+i+" waktu :"+(end-start));
+            start = System.currentTimeMillis();
+            new Tax(salary);
+            end = System.currentTimeMillis();
+            System.out.println("Perhitungan bulan "+i+" waktu :"+(end-start));
+        }
     }
 
     public Tax(Salary salary){
@@ -50,25 +65,41 @@ public class Tax {
                 List<SalaryDetail> listDalam = allData.stream()
                         .filter(c -> c.getUser().getId() != null)
                         .collect(Collectors.toList());
-                List<SalaryDetail> gaji = listDalam.stream()
-                        .filter(c ->
-                                c.getPayment().getAsJsonObject().has("basic_salary") ||
-                                c.getPayment().getAsJsonObject().get("type").getAsJsonObject().get("id").getAsInt()==23)
-                        .collect(Collectors.toList());
+//                List<SalaryDetail> gaji = listDalam.stream()
+//                        .filter(c ->
+//                                (c.getUser().getGroup().getId()!=1 && c.getUser().getGroup().getId() != 0) &&
+//                                        (c.getPayment().getAsJsonObject().has("basic_salary") ||
+//                                c.getPayment().getAsJsonObject().get("type").getAsJsonObject().get("id").getAsInt()==23))
+//                        .collect(Collectors.toList());
 
-                List<SalaryDetail> honor = listDalam.stream()
-                        .filter(c -> !(c.getPayment().getAsJsonObject().has("basic_salary")))
-                        .filter(c -> !(c.getPayment().getAsJsonObject().get("type").getAsJsonObject().get("id").getAsInt()==23
-                                && c.getPayment().getAsJsonObject().has("p1")))
-                        .collect(Collectors.toList());
+//                listDalam.stream().filter(c ->
+//                        (c.getUser().getGroup().getId()!=1 && c.getUser().getGroup().getId()!=0) &&
+//                                (c.getPayment().getAsJsonObject().get("type").getAsJsonObject().get("id").getAsInt() == 23
+//                                        || c.getPayment().getAsJsonObject().has("basic_salary"))).collect(Collectors.toList())
 
-                List<SalaryDetail> honorBknJasmed = honor.stream()
+//                List<SalaryDetail> honorPNS = listDalam.stream().filter(c -> c.getUser().getGroup().getId()==1 || c.getUser().getGroup().getId()==0).collect(Collectors.toList());
+//
+//                List<SalaryDetail> honorNonPNS = listDalam.stream()
+//                        .filter(c -> (c.getUser().getGroup().getId()!=1 && c.getUser().getGroup().getId()!=0) && !(c.getPayment().getAsJsonObject().get("type").getAsJsonObject().get("id").getAsInt() == 23 || c.getPayment().getAsJsonObject().has("basic_salary")))
+//                        .collect(Collectors.toList());
+//
+//                List<SalaryDetail> honor = new ArrayList<>(honorPNS);
+//                honor.addAll(honorNonPNS);
+
+                //                        .filter(c -> !(c.getPayment().getAsJsonObject().has("basic_salary")))
+//                        .filter(c -> (c.getUser().getGroup().getId()==1 || c.getUser().getGroup().getId() == 0) &&
+//                                c.getPayment().getAsJsonObject().get("type").getAsJsonObject().get("id").getAsInt()==23)
+//                        .filter(c -> (c.getUser().getGroup().getId()!=1 && c.getUser().getGroup().getId() != 0) &&
+//                                !(c.getPayment().getAsJsonObject().get("type").getAsJsonObject().get("id").getAsInt()==23
+//                                && c.getPayment().getAsJsonObject().has("p1")))
+
+                List<SalaryDetail> honorBknJasmed = listDalam.stream()
                         .filter(c -> !((c.getPayment().getAsJsonObject().getAsJsonObject("type").get("id").getAsInt() == 49) ||
                                 (c.getPayment().getAsJsonObject().getAsJsonObject("type").get("id").getAsInt() == 50))
                         )
                         .collect(Collectors.toList());
 
-                List<SalaryDetail> honorJasmed = honor.stream()
+                List<SalaryDetail> honorJasmed = listDalam.stream()
                         .filter(c -> (c.getPayment().getAsJsonObject().getAsJsonObject("type").get("id").getAsInt() == 49) ||
                                 (c.getPayment().getAsJsonObject().getAsJsonObject("type").get("id").getAsInt() == 50)
                         )
@@ -83,9 +114,9 @@ public class Tax {
                     calculateTaxTa(listTA);
                 }
 
-                if(gaji.size() > 0){
-                    calculateTaxSalary(gaji);
-                }
+//                if(gaji.size() > 0){
+//                    calculateTaxSalary(gaji);
+//                }
 
                 if(honorBknJasmed.size() > 0){
                     calculateTaxHonor(honorBknJasmed);
@@ -211,6 +242,12 @@ public class Tax {
                     PendapatanTetaps pBefore = listPendapatanTetap.get(listPendapatanTetap.size()-1);
                     BigDecimal tBefore = pBefore.getPajak().getTotal_pendapatan_rka();
                     BigDecimal tNow = getPendapatanSementara(sd);
+                    if(tBefore == null){ // kemungkinan pendapatan apbn bercampur dgn gaji
+                        tBefore = pBefore.getPajak().getBruto_pendapatan();
+                        System.out.println(pBefore.getSalary_id()+" Salary_id");
+                        System.out.println(userPajak.getId_user()+" UserPajak");
+                        System.out.println(listPendapatanTetap.size()+" Pendapatan Tetap Size");
+                    }
                     if(tBefore.compareTo(tNow)==0){ // just input not updating netto setahun
                         PendapatanTetaps pendapatanTetaps = initializePendapatanTetap(sd, userPajak);
 
@@ -236,6 +273,7 @@ public class Tax {
                          * jika lebih dari sebelumya hanya hitung yg berlebihnya saja
                          * jika kurang dari sebelumnya ga tau mau diapain
                          */
+                        System.out.println("Here Gaji Tidak Sama dgn bulan sebelumnya");
                     }
                 }else{ //salary sudah ada (salary duplicate)
                     /**
@@ -269,17 +307,19 @@ public class Tax {
                 BigDecimal nettoPendapatan = totalPendapatanSementara.subtract(biayaJabatan);
                 pajak.setNetto_pendapatan(nettoPendapatan);
 
-                BigDecimal ptkpSetahun = new BigDecimal(Ptkp.getInstance.getPtkp(sd.getUser().getId().toString()));
+
 
                 BigDecimal pkp = new BigDecimal(0.00);
 
-                if(userPajak.getTotal_pendapatan().getPtkp_setahun() == null)
+                if(userPajak.getTotal_pendapatan().getPtkp_setahun() == null) {
+                    BigDecimal ptkpSetahun = new BigDecimal(Ptkp.getInstance.getPtkp(sd.getUser().getId().toString()));
                     userPajak.getTotal_pendapatan().setPtkp_setahun(ptkpSetahun);
+                }
 
                 pendapatanTdkTetaps.setMonth(Integer.parseInt(sd.getPayment().getAsJsonObject().get("request").getAsJsonObject().get("updated_time").getAsString().split(" ")[0].split("-")[1]));
                 pendapatanTdkTetaps.setYear(Integer.parseInt(sd.getPayment().getAsJsonObject().get("request").getAsJsonObject().get("updated_time").getAsString().split(" ")[0].split("-")[0]));
 
-                pkp = calculateSisaPtkp(userPajak,nettoPendapatan,pkp,ptkpSetahun);
+                pkp = calculateSisaPtkp(userPajak,nettoPendapatan,pkp,userPajak.getTotal_pendapatan().getPtkp_setahun());
 
                 TarifPajak t = resultTax(userPajak, pkp, false);
 
@@ -595,7 +635,7 @@ public class Tax {
         if (userPajak.getPph21().getJasa() == null) {
             userPajak.getPph21().setJasa(total_pph21_sementara);
         } else {
-            userPajak.getPph21().setJasa(userPajak.getPph21().getUsu().add(total_pph21_sementara));
+            userPajak.getPph21().setJasa(userPajak.getPph21().getJasa().add(total_pph21_sementara));
         }
 
         return pendapatanTdkTetaps;

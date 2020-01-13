@@ -12,10 +12,7 @@ public class UserSimSdm{
     private Integer num_of_children;
 
     public String getNpwp() {
-        if(npwp.contains(".")||npwp.contains("-")||npwp.contains(" ")||npwp.contains(",")){
-            npwp = npwp.replace(".","").replace("-","").replace(" ","").replace(",","");
-        }
-        return npwp;
+        return npwp.replaceAll("\\D","");
     }
 
     public String getMarital_status() {

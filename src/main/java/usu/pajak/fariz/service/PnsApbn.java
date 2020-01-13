@@ -75,8 +75,8 @@ public class PnsApbn {
 
                             Query<PendapatanTetaps> qPt = datastore.createQuery(PendapatanTetaps.class).disableValidation()
                                     .filter("id_user", userPajak.getId_user());
-                            List<PendapatanTetaps> pendapatanTetapsList = qPt.find().toList();
-                            PendapatanTetaps pBefore = pendapatanTetapsList.get(pendapatanTetapsList.size()-1);
+//                            List<PendapatanTetaps> pendapatanTetapsList = qPt.find().toList();
+//                            PendapatanTetaps pBefore = pendapatanTetapsList.get(pendapatanTetapsList.size()-1);
 
                             BigDecimal nettoPendapatan;
 
@@ -339,7 +339,7 @@ public class PnsApbn {
             Integer ptkp =54000000;
             if(listDataKeluarga.get(nip)==null) {
                 System.out.println("Tidak ada pada kumpulan data nip:"+nip);
-                ptkp = Ptkp.getInstance.getPtkp(idUser.toString());
+                ptkp = new Ptkp().getPtkp(idUser.toString());
                 System.out.println(ptkp);
             }else
                 ptkp = listDataKeluarga.get(nip);

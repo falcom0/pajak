@@ -7,8 +7,8 @@ import java.util.List;
 
 import usu.pajak.fariz.model.UserSimSdm;
 
-public enum Ptkp {
-    getInstance();
+public class Ptkp {
+//    getInstance();
     private static final Integer initPtkp = 54000000;
     private Integer additionalPtkp = 4500000;
     public Integer getPtkp(String userId){

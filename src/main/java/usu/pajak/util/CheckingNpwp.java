@@ -28,7 +28,7 @@ public class CheckingNpwp {
         List<String> listNpwp = new ArrayList<>();
         while(rs.next()){
             if(!rs.getString("tax_id").trim().isEmpty()) {
-                String npwp = rs.getString("tax_id").replace(".", "").replace("-", "").replace(" ","").trim();
+                String npwp = rs.getString("tax_id").replaceAll("\\D","");
                 listNpwp.add(npwp);
             }
         }

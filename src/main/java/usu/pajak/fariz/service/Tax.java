@@ -838,6 +838,17 @@ public class Tax {
         }
     }
 
+    public UserPajakPendapatan getProfileTax(String userId){
+        Query<UserPajak> userPajakQuery = datastore.createQuery(UserPajak.class).disableValidation();
+        userPajakQuery.criteria("id_user").equalIgnoreCase(userId);
+        if(userPajakQuery.first() != null){
+            UserPajak userPajak = userPajakQuery.first();
+            return userPajak.getTotal_pendapatan();
+        }else{
+            return null;
+        }
+    }
+
     public void deleteTax(Integer type, Integer value){
         switch (type) {
             case REQUEST:

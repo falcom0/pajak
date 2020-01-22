@@ -3,6 +3,7 @@ package usu.pajak.fariz.service;
 import com.google.gson.Gson;
 import usu.pajak.fariz.model.Pajak;
 import usu.pajak.fariz.model.Salary;
+import usu.pajak.fariz.model.UserPajakPendapatan;
 import usu.pajak.services.ApiRka;
 
 import static spark.Spark.*;
@@ -44,23 +45,27 @@ public class ApiTax {
                 }
             }
         });
-//
-//        get("/profile-tax",(request, response) -> {
-//            String user_id = request.queryParams("user_id");
-//
-//        });
-//
+
+        get("/profile-tax",(request, response) -> {
+            String userId = request.queryParams("user_id");
+            Tax tax = new Tax();
+            if(userId != null){
+                UserPajakPendapatan userPajakPendapatan = tax.getProfileTax(userId);
+                if(userPajakPendapatan != null)  return new Gson().toJson(userPajakPendapatan, UserPajakPendapatan.class);
+                else  return "{ \"code\":401,\"status\": \"failed\",\"user_id\": " + userId + "}";
+            }else return "{ \"code\":401,\"status\": \"failed\",\"user_id\": " + userId + "}";
+        });
+
         get("/detail-tax", (request, response) -> {
             String salaryId = request.queryParams("salary_id");
             Tax tax = new Tax();
             if(salaryId != null) {
-                String result = new Gson().toJson(tax.getDetailTax(Integer.parseInt(salaryId)), Pajak.class);
-                return result;
-            }else{
-                return "{ \"code\":401,\"status\": \"failed\",\"salary_id\": " + salaryId + "}";
-            }
+                Pajak pajak = tax.getDetailTax(Integer.parseInt(salaryId));
+                if(pajak != null) return new Gson().toJson(pajak, Pajak.class);
+                else return "{ \"code\":401,\"status\": \"failed\",\"salary_id\": " + salaryId + "}";
+            }else  return "{ \"code\":401,\"status\": \"failed\",\"salary_id\": " + salaryId + "}";
         });
-//
+
 //        get("/list-tax", () -> {
 //
 //        });

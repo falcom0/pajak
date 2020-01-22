@@ -3,8 +3,6 @@ package usu.pajak.fariz.model;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import org.bson.types.ObjectId;
-//import org.mongodb.morphia.annotations.Entity;
-//import org.mongodb.morphia.annotations.Id;
 
 import java.util.LinkedHashMap;
 import java.util.List;

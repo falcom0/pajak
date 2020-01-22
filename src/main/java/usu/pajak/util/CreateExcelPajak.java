@@ -5,15 +5,11 @@ import com.google.gson.internal.LinkedTreeMap;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import dev.morphia.Datastore;
-import dev.morphia.Morphia;
-import dev.morphia.query.Query;
-import org.apache.poi.hssf.util.HSSFColor;
+import com.mongodb.MongoClientURI;import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
-//import org.mongodb.morphia.Datastore;
-//import org.mongodb.morphia.Morphia;
-//import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.query.Query;
 import usu.pajak.model.Salary;
 import usu.pajak.model.UserPajak;
 import usu.pajak.services.ApiRka;
@@ -48,8 +44,8 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
 
     public CreateExcelPajak() throws IOException{
 //        createExcelBasedOnUnit();
-//        createExcelBasedOnMonth("false","NON-PNBP","TETAP");
-        createExcelBasedOnMonth("true","NON-PNBP","LUAR");
+        createExcelBasedOnMonth("false","NON-PNBP","TETAP");
+//        createExcelBasedOnMonth("true","NON-PNBP","LUAR");
 //        createExcelBasedOnPerson();
 //        createExcelBasedOnDJP();
     }
@@ -942,7 +938,7 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
         DataUnit du = new Gson().fromJson(response, DataUnit.class);
         ApiRka apiRka = new ApiRka();
         String[] months = new DateFormatSymbols().getMonths();
-        for(int i=2;i<10;i++){
+        for(int i=10;i<12;i++){
             Workbook workbook = WorkbookFactory.create(new File("D:/PAJAK_2019.xls"));
             currency = workbook.createCellStyle();
             currency.setDataFormat(workbook.createDataFormat().getFormat("#,##0.00"));
@@ -974,7 +970,6 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                             row.createCell(k).setCellValue(headerPajakLuar[k]);
                         }
                     }
-
 
                     int count = 1;
                     for (UserPajak up : listResult) {

@@ -57,15 +57,16 @@ public class ApiMain {
                     // using REQUEST ID
                     Salary salary = new Gson().fromJson(
                             apiRka.callApiUsu(
-                                    "https://api.usu.ac.id/0.2/salary_receipts?request_id=" + requestId, "GET")
+//                                    "https://api.usu.ac.id/0.2/salary_receipts?request_id=" + requestId, "GET")
+                            "https://api.usu.ac.id/0.2/salary_receipts?&status=1&year=2019&month="+requestId, "GET")
                             , Salary.class);
 
                     // hitung pajak
                     if (apiRka.serviceCalculateTax(salary)) {
                         // inject to api rka
                         if (apiRka.getJsonArray() != null) {
-                            apiRka.callApiUsu(
-                                    "https://api.usu.ac.id/0.2/salary_receipts", "PUT", apiRka.getJsonArray());
+//                            apiRka.callApiUsu(
+//                                    "https://api.usu.ac.id/0.2/salary_receipts", "PUT", apiRka.getJsonArray());
                             return "{ \"code\":200,\"status\": \"success\"}";
                         } else {
                             return "{ \"code\":401,\"status\": \"failed\",\"request_id\": " + requestId + "}";
@@ -75,8 +76,8 @@ public class ApiMain {
                         if (apiRka.serviceGetTax(requestId)) {
                             if (apiRka.getJsonArray() != null) {
                                 System.out.println(apiRka.getJsonArray().toString());
-                                apiRka.callApiUsu(
-                                        "https://api.usu.ac.id/0.2/salary_receipts", "PUT", apiRka.getJsonArray());
+//                                apiRka.callApiUsu(
+//                                        "https://api.usu.ac.id/0.2/salary_receipts", "PUT", apiRka.getJsonArray());
                                 return "{ \"code\":200,\"status\": \"success\"}";
                             } else {
                                 return "{ \"code\":401,\"status\": \"failed\",\"request_id\": " + requestId + "}";
@@ -95,8 +96,8 @@ public class ApiMain {
 //                        return "{ \"code\":200,\"status\": \"success\"}";
                         // inject to api rka
                         if (apiRka.getJsonArray() != null) {
-                            apiRka.callApiUsu(
-                                    "https://api.usu.ac.id/0.2/salary_receipts", "PUT", apiRka.getJsonArray());
+//                            apiRka.callApiUsu(
+//                                    "https://api.usu.ac.id/0.2/salary_receipts", "PUT", apiRka.getJsonArray());
                             return "{ \"code\":200,\"status\": \"success\"}";
                         } else {
                             return "{ \"code\":401,\"status\": \"failed\",\"salaryId\": " + salaryId + "}";
@@ -105,8 +106,8 @@ public class ApiMain {
                         // seems there is some problem here
                             if (apiRka.getJsonArray() != null) {
                                 System.out.println(apiRka.getJsonArray().toString());
-                                apiRka.callApiUsu(
-                                        "https://api.usu.ac.id/0.2/salary_receipts", "PUT", apiRka.getJsonArray());
+//                                apiRka.callApiUsu(
+//                                        "https://api.usu.ac.id/0.2/salary_receipts", "PUT", apiRka.getJsonArray());
                                 return "{ \"code\":200,\"status\": \"success\"}";
                             } else {
                                 return "{ \"code\":401,\"status\": \"failed\",\"salaryId\": " + salaryId + "}";

@@ -58,7 +58,7 @@ public class ApiMain {
                     Salary salary = new Gson().fromJson(
                             apiRka.callApiUsu(
 //                                    "https://api.usu.ac.id/0.2/salary_receipts?request_id=" + requestId, "GET")
-                            "https://api.usu.ac.id/0.2/salary_receipts?&status=1&year=2019&month="+requestId, "GET")
+                            "https://api.usu.ac.id/0.2/salary_receipts?unit_id=25&status=1&year=2019&month="+requestId, "GET")
                             , Salary.class);
 
                     // hitung pajak

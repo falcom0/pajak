@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class CheckMasalahPajakUnbalance {
-    private static MongoClient client = new MongoClient(new MongoClientURI("mongodb://localhost:27017/pajak_2019_rev")); //connect to mongodb
+    private static MongoClient client = new MongoClient(new MongoClientURI("mongodb://localhost:27017/pajak_server")); //connect to mongodb
     private List<BasicDBObject> listR = new ArrayList<>();
     private List<SalaryDetail> listL = new ArrayList<>();
-    private Datastore datastore = new Morphia().mapPackage("usu.pajak.model.UserPajak").createDatastore(client, "pajak_2019_rev");
+    private Datastore datastore = new Morphia().mapPackage("usu.pajak.model.UserPajak").createDatastore(client, "pajak_server");
     private List<BasicDBObject> list = new ArrayList<>();
     private List<BasicDBObject> dbPph21 = new ArrayList<>();
 
@@ -49,21 +49,21 @@ public class CheckMasalahPajakUnbalance {
          */
         Query<UserPajak> query = datastore.find(UserPajak.class).disableValidation();
         ApiRka apiRka = new ApiRka();
-//        query.and(
-//                query.or(query.and(
-//                query.criteria("pendapatan_tetap.bulan").containsIgnoreCase(Integer.toString(3)),
-//                query.criteria("pendapatan_tetap.source_of_fund").containsIgnoreCase("NON"),
-//                query.criteria("pendapatan_tetap.unit_id").containsIgnoreCase("13")),
-//                query.and(query.criteria("pendapatan_tdk_tetap.bulan").containsIgnoreCase(Integer.toString(3)),
-//                query.criteria("pendapatan_tdk_tetap.unit_id").containsIgnoreCase("13"),
-//                query.criteria("pendapatan_tdk_tetap.source_of_fund").containsIgnoreCase("NON")
-//                )),
-//                query.criteria("id_user").not().containsIgnoreCase("-"));
+        query.and(
+                query.or(query.and(
+                query.criteria("pendapatan_tetap.bulan").containsIgnoreCase(Integer.toString(11)),
+                query.criteria("pendapatan_tetap.source_of_fund").containsIgnoreCase("NON"),
+                query.criteria("pendapatan_tetap.unit_id").containsIgnoreCase("25")),
+                query.and(query.criteria("pendapatan_tdk_tetap.bulan").containsIgnoreCase(Integer.toString(11)),
+                query.criteria("pendapatan_tdk_tetap.unit_id").containsIgnoreCase("25"),
+                query.criteria("pendapatan_tdk_tetap.source_of_fund").containsIgnoreCase("NON")
+                )),
+                query.criteria("id_user").not().containsIgnoreCase("-"));
         query.criteria("id_user").not().containsIgnoreCase("-");
         List<UserPajak> listResult = query.asList();
         getUserFromDatabase(listResult,apiRka);
-        String unitId = "27";
-        String bulan = "4";
+        String unitId = "25";
+        String bulan = "11";
         fromDatabase(listResult,unitId,String.format("%02d",Integer.parseInt(bulan)));
         System.out.println(listResult);
         BigDecimal totalT = list.stream().map(t -> {
@@ -228,7 +228,7 @@ public class CheckMasalahPajakUnbalance {
             try {
                 Salary salary = new Gson().fromJson(
                         apiRka.callApiUsu(
-                                "https://api.usu.ac.id/0.2/salary_receipts?status=1&user_id="+e.getId_user(), "GET")
+                                "https://api.usu.ac.id/0.2/salary_receipts?status=1&user_id="+e.getId_user()+"&bulan=11", "GET")
                         , Salary.class);
                 if(!(salary.getResponse() == null)) {
                     List<SalaryDetail> listGajiTdkTetap = new ArrayList<>();

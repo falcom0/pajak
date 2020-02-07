@@ -1,6 +1,7 @@
 package usu.pajak.util;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.internal.LinkedTreeMap;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
@@ -11,6 +12,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
 import usu.pajak.model.Salary;
+import usu.pajak.model.SalaryDetail;
 import usu.pajak.model.UserPajak;
 import usu.pajak.services.ApiRka;
 
@@ -24,6 +26,7 @@ import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -33,8 +36,8 @@ public class CreateExcelPajak {
     private String[] headerPajakLuar = new String[]{"Masa Pajak","Tahun Pajak","Pembetulan","Nomor Bukti Potong","NPWP","NIK","Nama","Alamat","WP Luar Negeri","Kode Negara",
             "Kode Pajak","Jumlah Bruto","Jumlah DPP","Tanpa NPWP","Tarif","Jumlah PPh","NPWP Pemotong","Nama Pemotong","Tanggal Bukti Potong"};
 //    private MongoClient client = new MongoClient(new MongoClientURI("mongodb://fariz:Laru36Dema@clusterasetmongo-shard-00-00-t3kc1.mongodb.net:27017,clusterasetmongo-shard-00-01-t3kc1.mongodb.net:27017,clusterasetmongo-shard-00-02-t3kc1.mongodb.net:27017/test?ssl=true&replicaSet=ClusterAsetMongo-shard-0&authSource=admin&retryWrites=true")); //connect to mongodb
-private static MongoClient client = new MongoClient(new MongoClientURI("mongodb://localhost:27017/pajak_2019_rev")); //connect to mongodb
-    private Datastore datastore = new Morphia().mapPackage("usu.pajak.model.UserPajak").createDatastore(client, "pajak_2019_rev");
+private static MongoClient client = new MongoClient(new MongoClientURI("mongodb://localhost:27017/pajak_server")); //connect to mongodb
+    private Datastore datastore = new Morphia().mapPackage("usu.pajak.model.UserPajak").createDatastore(client, "pajak_server");
     private static CellStyle style,currency,styleWarning;
     private String[] headerMonth = new String[]{"No.","NIP","Nama","NPWP","Kegiatan","Jenis","Bruto Pendapatan","Pengurang Jabatan","Pengurang Pensiun",
             "Netto Pendapatan","Netto Setahun","PTKP Sebulan","PTKP Setahun","PKP","PKP Setahun","Total PPH21"};
@@ -938,7 +941,7 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
         DataUnit du = new Gson().fromJson(response, DataUnit.class);
         ApiRka apiRka = new ApiRka();
         String[] months = new DateFormatSymbols().getMonths();
-        for(int i=10;i<12;i++){
+        for(int i=11;i<12;i++){
             Workbook workbook = WorkbookFactory.create(new File("D:/PAJAK_2019.xls"));
             currency = workbook.createCellStyle();
             currency.setDataFormat(workbook.createDataFormat().getFormat("#,##0.00"));
@@ -950,15 +953,15 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                 children.setName(par.getName());
 
                 String responsePajak = callApi("http://localhost:8253/list-tax?month="+Integer.toString(i+1)+"&unit_id="+
-                        children.getId()+"&apbn=true&pegawai_luar="+pegawaiLuar+"&sumber_dana="+sumberDana,"GET",false);
+                        25+"&apbn=true&pegawai_luar="+pegawaiLuar+"&sumber_dana="+sumberDana,"GET",false);
                 UserPajak[] listResult = new Gson().fromJson(responsePajak, UserPajak[].class);
                 Salary salary = new Gson().fromJson(
                         apiRka.callApiUsu(
                                 "https://api.usu.ac.id/0.2/salary_receipts?status=1&year=2019&source_of_fund="+sumberDana+
-                                        "&month="+Integer.toString(i+1)+"&unit_id="+children.getId(), "GET")
+                                        "&month="+Integer.toString(i+1)+"&unit_id="+16+"&mode=summary2", "GET")
                         , Salary.class);
-
-                if(listResult.length>0) {
+                List<SalaryDetail> listSalaryDetail = salary.getResponse().getSalary_receivers();
+                if(listSalaryDetail.size()>0) {
                     Sheet sheet = workbook.createSheet(children.getName().replaceAll("/", ""));
                     Row row = sheet.createRow(0);
                     if(pegawaiLuar.equalsIgnoreCase("false")) {
@@ -972,12 +975,34 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                     }
 
                     int count = 1;
-                    for (UserPajak up : listResult) {
-                        Integer totalBruto = 0;
-                        Integer totalPph21 = 0;
+                    for (SalaryDetail up : listSalaryDetail) {
+                        Integer totalBruto = up.getSummary().get("total").getAsInt();
+                        Integer totalPph21 = up.getSummary().get("pph21").getAsInt();
                         BigInteger totalPKP = BigInteger.valueOf(0);
                         BigInteger tarif = BigInteger.valueOf(0);
-                        BasicDBList listTetap = up.getPendapatan_tetap();
+//                        Iterator<Map.Entry<String, JsonElement>> iterate = up.getSummary().entrySet().iterator();
+//                        while(iterate.hasNext()){
+//                            Map.Entry<String, JsonElement> test = iterate.next();
+//                            String key = test.getKey();
+//
+//                             if(test.getValue() != null) {
+//                                 JsonElement value = test.getValue();
+//                                 if(key.equalsIgnoreCase("summary")){
+//                                     totalBruto += value.getAsJsonObject().get("total").getAsInt();
+//                                     totalPph21 += value.getAsJsonObject().get("pph21").getAsInt();
+//                                 }
+////                                 if (!value.isJsonObject()) {
+////                                     if (!value.isJsonNull()) {
+////                                         if (!key.contains("pph21")) {
+////                                             if(!key.contains("course"))
+////                                                 if(!key.contains("position"))
+////                                                    totalBruto += value.getAsInt();
+////                                         }
+////                                     }
+////                                 }
+//                             }
+//                        }
+                        /*BasicDBList listTetap = up.getPendapatan_tetap();
                         if (listTetap != null) {
                             Iterator iterator = listTetap.iterator();
                             while (iterator.hasNext()) {
@@ -1057,8 +1082,8 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                                 });
                                 totalPph21 = totalPph21 + api_pph21.get();
                             }
-                        }
-                        if(totalBruto > 0){
+                        }*/
+//                        if(totalBruto > 0){
                             if(pegawaiLuar.equalsIgnoreCase("false")) {
                                 Row rowPajak = sheet.createRow(count);
                                 Cell cell = rowPajak.createCell(0);
@@ -1068,7 +1093,7 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                                 cell = rowPajak.createCell(2);
                                 cell.setCellValue(0);
                                 cell = rowPajak.createCell(3);
-                                cell.setCellValue((up.getNpwp_simsdm() == null || up.getNpwp_simsdm().isEmpty()) ? up.getNpwp() : up.getNpwp_simsdm());
+                                cell.setCellValue((up.getUser().getNpwp()));
                            /* if (up.getNpwp() != null || !up.getNpwp().isEmpty()) {
                                 cell.setCellValue(up.getNpwp());
                             } else if (up.getNpwp_simsdm() != null || !up.getNpwp_simsdm().isEmpty()) {
@@ -1077,7 +1102,7 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                                 cell.setCellValue("0");
                             }*/
                                 cell = rowPajak.createCell(4);
-                                cell.setCellValue(up.getFull_name());
+                                cell.setCellValue(up.getUser().getFull_name());
                                 cell = rowPajak.createCell(5);
                                 cell.setCellValue("21-100-01");
                                 cell = rowPajak.createCell(6);
@@ -1098,7 +1123,7 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                                 cell = rowPajak.createCell(2);
                                 cell.setCellValue(0);
                                 cell = rowPajak.createCell(4);
-                                cell.setCellValue((up.getNpwp_simsdm() == null || up.getNpwp_simsdm().isEmpty()) ? up.getNpwp() : up.getNpwp_simsdm());
+                                cell.setCellValue((up.getUser().getNpwp()));
                            /* if (up.getNpwp() != null || !up.getNpwp().isEmpty()) {
                                 cell.setCellValue(up.getNpwp());
                             } else if (up.getNpwp_simsdm() != null || !up.getNpwp_simsdm().isEmpty()) {
@@ -1107,7 +1132,7 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                                 cell.setCellValue("0");
                             }*/
                                 cell = rowPajak.createCell(6);
-                                cell.setCellValue(up.getFull_name());
+                                cell.setCellValue(up.getUser().getFull_name());
                                 cell = rowPajak.createCell(8);
                                 cell.setCellValue("N");
                                 cell = rowPajak.createCell(10);
@@ -1135,7 +1160,7 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                                 cell.setCellStyle(currency);
                             }
                             count++;
-                        }
+//                        }
                     }
 
                     if (count > 1) {
@@ -1405,7 +1430,7 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                 }
             }
 
-            try (OutputStream fileOut = new FileOutputStream("D:\\PJK-usu\\["+filename+"]PAJAK_2019_NON_FINAL_REV_BULAN_"+(i+1)+".xls")) {
+            try (OutputStream fileOut = new FileOutputStream("D:\\PJK-usu\\["+filename+"]BFKG12-PAJAK_2019_NON_FINAL_REV_BULAN_"+(i+1)+".xls")) {
                 workbook.write(fileOut);
             }
             workbook.close();

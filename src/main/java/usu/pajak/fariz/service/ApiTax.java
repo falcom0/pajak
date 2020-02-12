@@ -1,10 +1,10 @@
 package usu.pajak.fariz.service;
 
 import com.google.gson.Gson;
-import usu.pajak.fariz.model.Pajak;
-import usu.pajak.fariz.model.Salary;
-import usu.pajak.fariz.model.UserPajakPendapatan;
+import usu.pajak.fariz.model.*;
 import usu.pajak.services.ApiRka;
+
+import java.util.List;
 
 import static spark.Spark.*;
 
@@ -66,9 +66,32 @@ public class ApiTax {
             }else  return "{ \"code\":401,\"status\": \"failed\",\"salary_id\": " + salaryId + "}";
         });
 
-//        get("/list-tax", () -> {
-//
-//        });
+        get("/list-tax", (request, response) -> {
+            String month = request.queryParams("month");
+            String unitId = null;
+            String sumberDana = null;
+            boolean pegawai_luar = false;
+//            boolean apbn = false;
+
+            if(request.queryParams("unit_id")!= null)
+                unitId = request.queryParams("unit_id");
+//            if(request.queryParams("apbn")!=null)
+//                apbn = Boolean.valueOf(request.queryParams("apbn"));
+            if(request.queryParams("sumber_dana")!=null)
+                sumberDana = request.queryParams("sumber_dana");
+            if(request.queryParams("pegawai_luar")!=null)
+                pegawai_luar = Boolean.valueOf(request.queryParams("pegawai_luar"));
+
+            List<UserPajak> userPajakList = new Tax().getListTax(month,unitId,pegawai_luar,sumberDana);
+            String result = new Gson().toJson(userPajakList);
+            return result;
+        });
+
+        get("/bukti_potong", (request, response) -> {
+            String userId = request.queryParams("user_id");
+            String result = new Gson().toJson(new Tax().getBuktiPotong(userId), BuktiPotong.class);
+            return result;
+        });
 //
 //        delete("/delete-salary", (request, response) -> {
 //            String requestId = request.queryParams("request_id");

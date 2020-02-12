@@ -10,7 +10,6 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.sun.xml.internal.bind.v2.TODO;
 import dev.morphia.Datastore;
 import dev.morphia.query.CriteriaContainer;
 import dev.morphia.query.Query;
@@ -18,11 +17,13 @@ import org.apache.poi.ss.usermodel.*;
 import org.bson.Document;
 import org.bson.types.Decimal128;
 import usu.pajak.fariz.model.*;
+import usu.pajak.services.ApiRka;
 
 import java.io.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -35,6 +36,9 @@ public class Tax {
     public static final int SALARY = 1;
 
     public static void main(String[] args) throws IOException {
+        Tax tax = new Tax();
+        tax.getListTax("1","9",false, "NON-PNBP");
+
         //request_id=13763
 //        System.out.println(Ptkp.getInstance.getPtkp("3654"));
 
@@ -197,7 +201,7 @@ public class Tax {
     }
 
     public Tax(){
-        datastore = MongoDb.getInstance.getDatastore(MongoDb.LOCAL,"revisi_pajak");
+        datastore = MongoDb.getInstance.getDatastore(MongoDb.SERVER,"revisi_pajak");
     }
 
     public Tax(Salary salary){
@@ -847,6 +851,73 @@ public class Tax {
         }else{
             return null;
         }
+    }
+
+    public List<UserPajak> getListTax(String month, String unitId, boolean pegawaiLuar, String sumberDana){
+        Query<PendapatanTdkTetaps> pendapatanTdkTetapsQuery = datastore.find(PendapatanTdkTetaps.class).disableValidation();
+        Query<UserPajak> userPajakQuery = datastore.find(UserPajak.class).disableValidation();
+        if(unitId != null){ // specific unit
+            pendapatanTdkTetapsQuery.and(
+                    pendapatanTdkTetapsQuery.criteria("month").equal(Integer.parseInt(month)),
+                    pendapatanTdkTetapsQuery.criteria("unit.id").equal(Integer.parseInt(unitId)),
+                    pendapatanTdkTetapsQuery.criteria("rka_payment.activity.source_of_fund").equalIgnoreCase(sumberDana)
+            );
+            if(!pegawaiLuar){
+                pendapatanTdkTetapsQuery.criteria("id_user").not().containsIgnoreCase("-");
+            }else{
+                pendapatanTdkTetapsQuery.criteria("id_user").containsIgnoreCase("-");
+            }
+
+            List<PendapatanTdkTetaps> pendapatanTdkTetapsList = pendapatanTdkTetapsQuery.find().toList();
+            Map<String, BigDecimal> pendapatan = pendapatanTdkTetapsList.stream()
+                .collect(
+                    Collectors.groupingBy(
+                        PendapatanTdkTetaps::getId_user,
+                        Collectors.mapping(
+                            PendapatanTdkTetaps::getNettoPendapatan,
+                            Collectors.reducing(
+                                BigDecimal.ZERO,
+                                BigDecimal::add
+                            )
+                        )
+                    )
+                );
+
+            Map<String, BigDecimal> pajak = pendapatanTdkTetapsList.stream()
+                    .collect(
+                            Collectors.groupingBy(
+                                    PendapatanTdkTetaps::getId_user,
+                                    Collectors.mapping(
+                                            PendapatanTdkTetaps::getPph21,
+                                            Collectors.reducing(
+                                                    BigDecimal.ZERO,
+                                                    BigDecimal::add
+                                            )
+                                    )
+                            )
+                    );
+
+            userPajakQuery.field("id_user").in(pendapatan.keySet());
+            List<UserPajak> userPajakList = userPajakQuery.find().toList();
+            userPajakList.forEach(e -> {
+                e.setTotalNettoPendapatan(pendapatan.get(e.getId_user()));
+                e.setTotalPph21(pajak.get(e.getId_user()));
+            });
+//            userPajakList.stream().forEach(System.out::println);
+            return userPajakList;
+        }else{ // general or whole USU
+            return null;
+        }
+
+    }
+
+    public BuktiPotong getBuktiPotong(String userId){
+        try {
+            ApiRka.callApiUsu("https://api.usu.ac.id/","GET");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public void deleteTax(Integer type, Integer value){

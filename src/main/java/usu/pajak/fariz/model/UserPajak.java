@@ -30,6 +30,25 @@ public class UserPajak {
     private UserPajakTax setting_pajak;
     private UserPajakPPH pph21;
     private Date lastUpdate = new Date();
+    private BigDecimal totalNettoPendapatan;
+    private BigDecimal totalPph21;
+
+    public BigDecimal getTotalNettoPendapatan() {
+        return totalNettoPendapatan;
+    }
+
+    public BigDecimal getTotalPph21() {
+        return totalPph21;
+    }
+
+    public void setTotalPph21(BigDecimal totalPph21) {
+        this.totalPph21 = totalPph21;
+    }
+
+    public void setTotalNettoPendapatan(BigDecimal totalNettoPendapatan) {
+        this.totalNettoPendapatan = totalNettoPendapatan;
+    }
+
     @PrePersist
     void prePersist() {lastUpdate = new Date();}
 

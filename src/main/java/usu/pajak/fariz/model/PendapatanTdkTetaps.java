@@ -5,8 +5,10 @@ import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.PrePersist;
 import dev.morphia.annotations.Reference;
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
+import java.math.BigDecimal;
 import java.util.Date;
 //import org.mongodb.morphia.annotations.Entity;
 //import org.mongodb.morphia.annotations.Id;
@@ -54,6 +56,18 @@ public class PendapatanTdkTetaps {
 
     public Pajak getPajak() {
         return pajak;
+    }
+
+    public BigDecimal getNettoPendapatan(){
+        return pajak.getNetto_pendapatan();
+    }
+
+    public BigDecimal getPph21(){
+        return pajak.getPph21().stream().map(e -> {
+            BasicDBObject basicDBObject = (BasicDBObject) e;
+            Decimal128 decimal128 = (Decimal128)basicDBObject.get("_hasil");
+            return decimal128.bigDecimalValue();
+        }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public void setPajak(Pajak pajak) {

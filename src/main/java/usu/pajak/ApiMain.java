@@ -1,6 +1,7 @@
 package usu.pajak;
 
 import com.google.gson.Gson;
+import usu.pajak.fariz.model.BuktiPotong;
 import usu.pajak.model.DetailTax;
 import usu.pajak.model.Salary;
 import usu.pajak.model.UserPajak;
@@ -203,6 +204,12 @@ public class ApiMain {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        get("/bukti_potong",((request, response) -> {
+            String userId = request.queryParams("user_id");
+            String result = new Gson().toJson(new UserPajakService().getBuktiPotong(userId), BuktiPotong.class);
+            return result;
+        }));
 
 //        post("/uploadFile", "multipart/form-data", (req, res) -> {
 //            long maxFileSize = 100000000;       // the maximum size allowed for uploaded files

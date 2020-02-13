@@ -1,6 +1,7 @@
 package usu.pajak.fariz.model;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import java.math.BigInteger;
 
@@ -9,6 +10,11 @@ public class SalaryDetail{
     private User user;
     private Unit unit;
     private JsonElement payment;
+    private JsonObject summary;
+
+    public JsonObject getSummary() {
+        return summary;
+    }
 
     public BigInteger getId() {
         return id;

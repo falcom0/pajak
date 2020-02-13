@@ -19,28 +19,37 @@ public class BuktiPotong {
     private String a_10; //jabatan
     private boolean a_11; //karyawan asing
     private String a_12; // kode domisili negara
-    private BigInteger b_01; //gaji
-    private BigInteger b_03;//tunjangan lainnya termasuk SK
-    private BigInteger b_04;//honorarium dan imbalan lain
-    private BigInteger b_05;//premi asuransi
-    private BigInteger b_06;//penerimaan natura
-    private BigInteger b_07;//bonus/THR
-    private BigInteger b_08; // total bruto
-    private BigInteger b_09; // biaya jabatan
-    private BigInteger b_10; // iuran pensiun
-    private BigInteger b_11; // total pengurang
-    private BigInteger b_12; // total neto
-    private BigInteger b_13; // penghasilan neto masa sebelumnya
-    private BigInteger b_14; // neto utk menghitung pph pasal 21
-    private BigInteger b_15; // ptkp
-    private BigInteger b_16; // neto - ptkp (pkp)
-    private BigInteger b_17; // pph21 dari pkp
-    private BigInteger b_18; // pph21 yg telah dipotong sebelumnya
-    private BigInteger b_19; // pph21 yg terhutang
-    private BigInteger b_20; // pph21 yg telah dilunasi
+    private BigInteger b_01 = BigInteger.ZERO; //gaji
+    private BigInteger b_02 = BigInteger.ZERO; //tunjangan_pph
+    private BigInteger b_03 = BigInteger.ZERO;//tunjangan lainnya termasuk SK
+    private BigInteger b_04 = BigInteger.ZERO;//honorarium dan imbalan lain
+    private BigInteger b_05 = BigInteger.ZERO;//premi asuransi
+    private BigInteger b_06 = BigInteger.ZERO;//penerimaan natura
+    private BigInteger b_07 = BigInteger.ZERO;//bonus/THR
+    private BigInteger b_08 = BigInteger.ZERO; // total bruto
+    private BigInteger b_09 = BigInteger.ZERO; // biaya jabatan
+    private BigInteger b_10 = BigInteger.ZERO; // iuran pensiun
+    private BigInteger b_11 = BigInteger.ZERO; // total pengurang
+    private BigInteger b_12 = BigInteger.ZERO; // total neto
+    private BigInteger b_13 = BigInteger.ZERO; // penghasilan neto masa sebelumnya
+    private BigInteger b_14 = BigInteger.ZERO; // neto utk menghitung pph pasal 21
+    private BigInteger b_15 = BigInteger.ZERO; // ptkp
+    private BigInteger b_16 = BigInteger.ZERO; // neto - ptkp (pkp)
+    private BigInteger b_17 = BigInteger.ZERO; // pph21 dari pkp
+    private BigInteger b_18 = BigInteger.ZERO; // pph21 yg telah dipotong sebelumnya
+    private BigInteger b_19 = BigInteger.ZERO; // pph21 yg terhutang
+    private BigInteger b_20 = BigInteger.ZERO; // pph21 yg telah dilunasi
     private String c_01; // npwp pemotong
     private String c_02; // nama pemotong
     private String c_03; // tanggal
+
+    public void setB_02(BigInteger b_02) {
+        this.b_02 = b_02;
+    }
+
+    public BigInteger getB_02() {
+        return b_02;
+    }
 
     public void setA_01(String a_01) {
         this.a_01 = a_01;

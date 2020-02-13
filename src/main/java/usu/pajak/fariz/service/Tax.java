@@ -11,6 +11,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
+import dev.morphia.Morphia;
 import dev.morphia.query.CriteriaContainer;
 import dev.morphia.query.Query;
 import org.apache.poi.ss.usermodel.*;
@@ -21,6 +22,7 @@ import usu.pajak.services.ApiRka;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,7 @@ import java.util.stream.Collectors;
 
 public class Tax {
     private static CellStyle currency;
-    private Datastore datastore;
+    private Datastore datastore,ds2019;
     private JsonArray jsonArray;
     public static final int REQUEST  = 0;
     public static final int SALARY = 1;
@@ -201,7 +203,9 @@ public class Tax {
     }
 
     public Tax(){
-        datastore = MongoDb.getInstance.getDatastore(MongoDb.SERVER,"revisi_pajak");
+        datastore = MongoDb.getInstance.getDatastore(MongoDb.LOCAL,"revisi_pajak");
+        ds2019 = new Morphia().createDatastore(
+                new MongoClient(new MongoClientURI("mongodb://"+ MongoDb.LOCAL)), "pajak_server");
     }
 
     public Tax(Salary salary){
@@ -912,12 +916,66 @@ public class Tax {
     }
 
     public BuktiPotong getBuktiPotong(String userId){
+        BuktiPotong pegawai = new BuktiPotong();
         try {
-            ApiRka.callApiUsu("https://api.usu.ac.id/","GET");
+            String response = ApiRka.callApiUsu("https://api.usu.ac.id/0.1/users/"+userId+"?fieldset=structural,functional,rank","GET");
+            JsonObject jsonObject = new Gson().fromJson(response,JsonObject.class).getAsJsonObject("data");
+            pegawai.setA_01(jsonObject.get("npwp").getAsString());
+            pegawai.setA_02(jsonObject.get("nip").getAsString());
+            pegawai.setA_03(jsonObject.get("full_name").getAsString());
+            final String[] alamat = {""};
+            jsonObject.get("address").getAsJsonObject().entrySet().forEach(e->{
+                alamat[0] = alamat[0].concat(e.getValue().getAsString()+",");
+            });
+            pegawai.setA_04(alamat[0].substring(0, alamat[0].length()-1));
+            String gender = jsonObject.get("gender").getAsString();
+            switch (gender){
+                case "Pria":
+                    pegawai.setA_05(true);
+                    break;
+                case "Wanita":
+                    pegawai.setA_06(true);
+                    break;
+            }
+            //TODO: Status dan Jumlah Tanggungan PTKP
+            //TODO: Nama Jabatan
+
+//            pegawai.setB_01(BigInteger.ZERO);
+            response = ApiRka.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?source_of_fund=NON-PNBP&year=2019&status=1&mode=summary2&user_id="+userId,"GET");
+            Salary salary = new Gson().fromJson(response, Salary.class);
+            SalaryDetail salaryDetail = salary.getResponse().getSalary_receivers().get(0);
+            BigInteger totalBruto = new BigInteger(Integer.toString(salaryDetail.getSummary().get("total").getAsInt()));
+            pegawai.setB_03(totalBruto);
+            pegawai.setB_08(totalBruto);
+
+            BigDecimal biayaJabatan = StaticValue.persenBiayaJabatan.multiply(new BigDecimal(totalBruto.intValue()));
+            if(biayaJabatan.compareTo(StaticValue.limitBiayaJabatan) > 0){biayaJabatan = StaticValue.limitBiayaJabatan; pegawai.setB_09(StaticValue.limitBiayaJabatan.toBigInteger());}
+            else{pegawai.setB_09(biayaJabatan.toBigInteger());}
+            pegawai.setB_11(biayaJabatan.toBigInteger());
+
+            BigInteger totalNetto = totalBruto.subtract(biayaJabatan.toBigInteger());
+            pegawai.setB_12(totalNetto);
+//            pegawai.setB_13(BigInteger.ZERO);
+            pegawai.setB_14(totalNetto);
+
+            Query<usu.pajak.model.UserPajak> query = ds2019.find(usu.pajak.model.UserPajak.class).disableValidation();
+            query.criteria("id_user").equalIgnoreCase(userId);
+//            query.filter("id_user",userId);
+            usu.pajak.model.UserPajak userPajak = query.find().toList().get(0);
+            BigInteger ptkp = new BigInteger(userPajak.getPtkp_setahun());
+            pegawai.setB_15(ptkp);
+
+            BigInteger totalPkp = totalNetto.subtract(ptkp);
+            pegawai.setB_16(totalPkp);
+
+            BigInteger totalPph21 = new BigInteger(Integer.toString(salaryDetail.getSummary().get("pph21").getAsInt()));
+            pegawai.setB_17(totalPph21);
+            pegawai.setB_19(totalPph21);
+            pegawai.setB_20(totalPph21);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+        return pegawai;
     }
 
     public void deleteTax(Integer type, Integer value){

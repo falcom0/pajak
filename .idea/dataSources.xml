@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="people@api.usu.ac.id" uuid="1f165301-623c-423c-b6d2-86c662cef409">
+      <driver-ref>mariadb</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.mariadb.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mariadb://api.usu.ac.id:3306/people</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="simsdm@simsdm.usu.ac.id" uuid="dc3a56c8-1358-4e42-bcd1-dbfed923746c">
+      <driver-ref>mariadb</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.mariadb.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mariadb://simsdm.usu.ac.id:3306/simsdm</jdbc-url>
+    </data-source>
+  </component>
+</project>

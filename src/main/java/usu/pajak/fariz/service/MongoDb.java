@@ -12,7 +12,7 @@ public enum MongoDb {
     private Datastore datastore = null;
 
     public Datastore getDatastore(String from, String dbName) {
-        if(datastore==null) datastore = new Morphia().createDatastore(
+        datastore = new Morphia().createDatastore(
                 new MongoClient(new MongoClientURI("mongodb://"+from)), dbName);
         return datastore;
     }

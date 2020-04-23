@@ -2,6 +2,7 @@ package usu.pajak;
 
 import com.google.gson.Gson;
 import usu.pajak.fariz.model.BuktiPotong;
+import usu.pajak.fariz.service.PdfBuktiPotong;
 import usu.pajak.model.DetailTax;
 import usu.pajak.model.Salary;
 import usu.pajak.model.UserPajak;
@@ -10,14 +11,24 @@ import usu.pajak.services.DeleteSalaryService;
 import usu.pajak.services.DetailTaxService;
 import usu.pajak.services.UserPajakService;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
+
 import static spark.Spark.*;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 //import static spark.debug.DebugScreen.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class ApiMain {
     public static void main(String[] args){
@@ -34,6 +45,7 @@ public class ApiMain {
 //        uploadDir.mkdir(); // create the upload directory if it doesn't exist
 
 //        staticFiles.externalLocation("upload");
+        staticFiles.expireTime(600);
         Logger logger = Logger.getLogger("ApiPajak");
         FileHandler fh;
         port(8253);
@@ -48,7 +60,7 @@ public class ApiMain {
             SimpleFormatter formatter = new SimpleFormatter();
             fh.setFormatter(formatter);
 
-            get("/tax", (req, res) -> {
+          /*  get("/tax", (req, res) -> {
                 String requestId = req.queryParams("request_id");
                 String salaryId = req.queryParams("salary_id");
                 logger.info("Request_id : "+requestId);
@@ -199,16 +211,73 @@ public class ApiMain {
                UserPajakService ups = new UserPajakService();
                ups.movePendapatan(logger,targetUserId,t_salaryId,destUserId);
                return "Done";
-            });
+            });*/
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+        get("set_no_bukti_potong",((request, response) -> {
+//            new UserPajakService().setNoBuktiPotong();
+            return "success";
+        }));
+
         get("/bukti_potong",((request, response) -> {
+
             String userId = request.queryParams("user_id");
-            String result = new Gson().toJson(new UserPajakService().getBuktiPotong(userId), BuktiPotong.class);
-            return result;
+            String type = request.queryParams("type");
+            System.out.println("bukti");
+            UserPajakService ups = new UserPajakService();
+            System.out.println("bukti2");
+            List<BuktiPotong> buktiPotongList = ups.getBuktiPotong(userId,type);
+//            for(BuktiPotong buktiPotong : buktiPotongList){
+
+            String fileName="";
+            String result = "";
+            switch (type){
+                case "A1":
+                    result = new Gson().toJson(buktiPotongList.get(0), BuktiPotong.class);
+                    fileName = "/[Bukti Potong A1]"+ buktiPotongList.get(0).getA_03()+"_2019.pdf";
+                    File filePdf = new PdfBuktiPotong().createPdfA1(fileName,new Gson().fromJson(result, BuktiPotong.class), Integer.parseInt(userId));
+                    break;
+                case "NON-FINAL":
+
+                    if(buktiPotongList.size()>1) {
+                        fileName = "/Bukti_Potong_Non_Final_2019.zip";
+                        FileOutputStream fos = new FileOutputStream(fileName);
+                        ZipOutputStream zipOut = new ZipOutputStream(fos);
+                        for(BuktiPotong bp : buktiPotongList){
+                            result = new Gson().toJson(bp, BuktiPotong.class);
+                            String fileNameT = "/[Bukti Potong NON-FINAL]" + bp.getA_03() +"_"+bp.getKode_pajak()+ "_2019.pdf";
+                            File fileToZip = new PdfBuktiPotong().createPdfNonFinal(fileNameT, new Gson().fromJson(result, BuktiPotong.class), Integer.parseInt(userId));
+                            FileInputStream fis = new FileInputStream(fileToZip);
+                            ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
+                            zipOut.putNextEntry(zipEntry);
+
+                            byte[] bytes = new byte[1024];
+                            int length;
+                            while((length = fis.read(bytes)) >= 0) {
+                                zipOut.write(bytes, 0, length);
+                            }
+                            fis.close();
+                        }
+                        zipOut.close();
+                        fos.close();
+
+                    }else{
+                        result = new Gson().toJson(buktiPotongList.get(0), BuktiPotong.class);
+                        fileName = "/[Bukti Potong NON-FINAL]" + buktiPotongList.get(0).getA_03() + "_2019.pdf";
+                        new PdfBuktiPotong().createPdfNonFinal(fileName, new Gson().fromJson(result, BuktiPotong.class), Integer.parseInt(userId));
+                    }
+                    break;
+            }
+
+            byte[] bytes = Files.readAllBytes(Paths.get(fileName));
+            HttpServletResponse raw = response.raw();
+            raw.getOutputStream().write(bytes);
+            raw.getOutputStream().flush();
+            raw.getOutputStream().close();
+            return response.raw();
         }));
 
 //        post("/uploadFile", "multipart/form-data", (req, res) -> {

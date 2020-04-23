@@ -3,22 +3,28 @@ package usu.pajak.fariz.model;
 import java.math.BigInteger;
 
 public class BuktiPotong {
-    private String h_01; //no.bukti potong
+    private String h_01=""; //no.bukti potong
     private String[] h_02 = new String[]{"01","12"}; //masa
-    private String[] h_03 = new String[]{"846628287","121","000"}; //npwp usu
+    private String[] h_03 = new String[]{"84.662.828.7","121","000"}; //npwp usu
     private String h_04 = "UNIVERSITAS SUMATERA UTARA";
     private String a_01; //npwp pegawai
     private String a_02; //nik
     private String a_03; //nama
     private String a_04; //alamat
-    private boolean a_05; //jenis kelamin laki-laki
-    private boolean a_06; //jenis kelamin perempuan
+    private Boolean a_05 = false; //jenis kelamin laki-laki
+    private Boolean a_06 = false; //jenis kelamin perempuan
     private Integer a_07; //jumlah tanggungan Kawin
-    private Integer a_08; //jumlah tanggungan Tidak Kawin
+    private Integer a_08 ; //jumlah tanggungan Tidak Kawin
     private Integer a_09; //jumlah tanggungan HB
-    private String a_10; //jabatan
+    private String a_10 = "Pegawai"; //jabatan
     private boolean a_11; //karyawan asing
     private String a_12; // kode domisili negara
+    private String kode_pajak;
+    private BigInteger bruto = BigInteger.ZERO;
+    private BigInteger dpp = BigInteger.ZERO;
+    private boolean tdk_npwp = false;
+    private Integer tarif = 0;
+    private BigInteger pph_dipotong = BigInteger.ZERO;
     private BigInteger b_01 = BigInteger.ZERO; //gaji
     private BigInteger b_02 = BigInteger.ZERO; //tunjangan_pph
     private BigInteger b_03 = BigInteger.ZERO;//tunjangan lainnya termasuk SK
@@ -39,9 +45,58 @@ public class BuktiPotong {
     private BigInteger b_18 = BigInteger.ZERO; // pph21 yg telah dipotong sebelumnya
     private BigInteger b_19 = BigInteger.ZERO; // pph21 yg terhutang
     private BigInteger b_20 = BigInteger.ZERO; // pph21 yg telah dilunasi
-    private String c_01; // npwp pemotong
-    private String c_02; // nama pemotong
-    private String c_03; // tanggal
+    private String[] c_01 = new String[]{"25.118.795.1","122","000"}; // npwp pemotong
+    private String c_02 = "AHMAD IKBAL"; // nama pemotong
+    private String[] c_03 = new String[]{"12","02","2020"}; // tanggal
+
+
+    public void setBruto(BigInteger bruto) {
+        this.bruto = bruto;
+    }
+
+    public BigInteger getBruto() {
+        return bruto;
+    }
+
+    public void setDpp(BigInteger dpp) {
+        this.dpp = dpp;
+    }
+
+    public BigInteger getDpp() {
+        return dpp;
+    }
+
+    public void setKode_pajak(String kode_pajak) {
+        this.kode_pajak = kode_pajak;
+    }
+
+    public void setPph_dipotong(BigInteger pph_dipotong) {
+        this.pph_dipotong = pph_dipotong;
+    }
+
+    public void setTarif(Integer tarif) {
+        this.tarif = tarif;
+    }
+
+    public void setTdk_npwp(boolean tdk_npwp) {
+        this.tdk_npwp = tdk_npwp;
+    }
+
+    public boolean getTdk_npwp(){
+        return this.tdk_npwp;
+    }
+
+    public BigInteger getPph_dipotong() {
+        return pph_dipotong;
+    }
+
+    public Integer getTarif() {
+        return tarif;
+    }
+
+    public String getKode_pajak() {
+        return kode_pajak;
+    }
 
     public void setB_02(BigInteger b_02) {
         this.b_02 = b_02;
@@ -74,7 +129,7 @@ public class BuktiPotong {
     public void setA_06(boolean a_06) {
         this.a_06 = a_06;
     }
-
+                                                                                                                                                                                                                                                                                                                                    
     public void setA_07(Integer a_07) {
         this.a_07 = a_07;
     }
@@ -175,16 +230,8 @@ public class BuktiPotong {
         this.b_20 = b_20;
     }
 
-    public void setC_01(String c_01) {
-        this.c_01 = c_01;
-    }
-
     public void setC_02(String c_02) {
         this.c_02 = c_02;
-    }
-
-    public void setC_03(String c_03) {
-        this.c_03 = c_03;
     }
 
     public void setH_01(String h_01) {
@@ -279,6 +326,14 @@ public class BuktiPotong {
         return b_20;
     }
 
+    public Boolean getA_05() {
+        return a_05;
+    }
+
+    public Boolean getA_06() {
+        return a_06;
+    }
+
     public Integer getA_07() {
         return a_07;
     }
@@ -315,16 +370,32 @@ public class BuktiPotong {
         return a_12;
     }
 
-    public String getC_01() {
+    public void setC_01(String[] c_01) {
+        this.c_01 = c_01;
+    }
+
+    public String[] getC_01() {
         return c_01;
+    }
+
+    public void setA_06(Boolean a_06) {
+        this.a_06 = a_06;
+    }
+
+    public void setA_05(Boolean a_05) {
+        this.a_05 = a_05;
     }
 
     public String getC_02() {
         return c_02;
     }
 
-    public String getC_03() {
+    public String[] getC_03() {
         return c_03;
+    }
+
+    public void setC_03(String[] c_03) {
+        this.c_03 = c_03;
     }
 
     public String getH_01() {

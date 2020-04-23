@@ -21,7 +21,7 @@ public class ExcelPajak {
 
     public static void main(String[] args) {
         try {
-            new ExcelPajak().export(false, "NON-PNBP","TETAP",2020);
+            new ExcelPajak().export(true, "BOPTN-BH","LUAR-BPPTN",2019);
         } catch (IOException e) {
             e.printStackTrace();
         }

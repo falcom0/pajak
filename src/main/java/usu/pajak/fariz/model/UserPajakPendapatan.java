@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public class UserPajakPendapatan {
     private BigDecimal netto_pendapatan_setahun;
+    private BigDecimal bruto_kegiatan_setahun;
     private BigDecimal bruto_jasa_setahun;
     private BigDecimal biaya_jabatan_setahun;
     private BigDecimal jaminan_pensiun_ht_setahun;
@@ -11,6 +12,23 @@ public class UserPajakPendapatan {
     private BigDecimal sisa_ptkp;
     private BigDecimal total_pkp;
     private BigDecimal total_pkp_jasa;
+    private BigDecimal total_pkp_kegiatan;
+
+    public BigDecimal getTotal_pkp_kegiatan() {
+        return total_pkp_kegiatan;
+    }
+
+    public void setTotal_pkp_kegiatan(BigDecimal total_pkp_kegiatan) {
+        this.total_pkp_kegiatan = total_pkp_kegiatan;
+    }
+
+    public void setBruto_kegiatan_setahun(BigDecimal bruto_kegiatan_setahun) {
+        this.bruto_kegiatan_setahun = bruto_kegiatan_setahun;
+    }
+
+    public BigDecimal getBruto_kegiatan_setahun() {
+        return bruto_kegiatan_setahun;
+    }
 
     public BigDecimal getJaminan_pensiun_ht_setahun() {
         return jaminan_pensiun_ht_setahun;

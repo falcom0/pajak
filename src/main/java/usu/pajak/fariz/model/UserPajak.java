@@ -7,10 +7,8 @@ import org.bson.types.ObjectId;
 
 import java.math.BigDecimal;
 import java.util.Date;
-//import org.mongodb.morphia.annotations.Entity;
-//import org.mongodb.morphia.annotations.Id;
-//import org.mongodb.morphia.annotations.Indexed;
-//import org.mongodb.morphia.annotations.Reference;
+
+//import org.mongodb.morphia.annotations.*;
 
 @Entity(value="user_pajaks")
 public class UserPajak {
@@ -32,6 +30,15 @@ public class UserPajak {
     private Date lastUpdate = new Date();
     private BigDecimal totalNettoPendapatan;
     private BigDecimal totalPph21;
+    private String no_bukti_potong;
+
+    public String getNo_bukti_potong() {
+        return no_bukti_potong;
+    }
+
+    public void setNo_bukti_potong(String no_bukti_potong) {
+        this.no_bukti_potong = no_bukti_potong;
+    }
 
     public BigDecimal getTotalNettoPendapatan() {
         return totalNettoPendapatan;

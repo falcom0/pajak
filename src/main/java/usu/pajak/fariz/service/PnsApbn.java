@@ -45,7 +45,7 @@ public class PnsApbn {
     }
 
     public PnsApbn() throws IOException {
-        datastore = MongoDb.getInstance.getDatastore(MongoDb.LOCAL,"revisi_pajak");
+        datastore = MongoDb.getInstance.getDatastore(MongoDb.LOCAL,"r11_pajak2019");
         jArray = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/1.0/users/","GET"), JsonArray.class);
         getDataKeluarga();
         for(int i =1; i<=12; i++)
@@ -324,6 +324,8 @@ public class PnsApbn {
         String nip = cell.getStringCellValue();
         Integer idUser = isNip(nip);
         if(idUser == 0){
+            System.out.println("bulan "+bulan);
+            System.out.println(sheet.getSheetName());
             System.out.println(row.getCell(8).getStringCellValue());
             System.out.println(row.getCell(9).getStringCellValue());
             idUser = isNip(row.getCell(52).getStringCellValue());

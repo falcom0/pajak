@@ -8,8 +8,9 @@ import com.mongodb.*;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
+import usu.pajak.fariz.model.UserSimSdm;
 import usu.pajak.model.*;
-import usu.pajak.util.UserSimSdm;
+//import usu.pajak.util.UserSimSdm;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
@@ -1414,7 +1415,7 @@ public class ApiRka {
         conn.setUseCaches( true );
         conn.setDoOutput( true );
         conn.setDoInput(true);
-
+        System.out.println("here");
 //        DataOutputStream wr;
 //        wr = new DataOutputStream(conn.getOutputStream());
 //        wr.writeBytes(postData);
@@ -1422,6 +1423,7 @@ public class ApiRka {
 //        wr.close();
         StringBuffer response = new StringBuffer();
         if(conn.getResponseCode() == 200) {
+            System.out.println("here1");
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(conn.getInputStream()));
             String inputLine;

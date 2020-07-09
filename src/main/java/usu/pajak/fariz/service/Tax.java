@@ -31,18 +31,32 @@ public class Tax {
     private JsonArray jsonArray;
     public static final int REQUEST  = 0;
     public static final int SALARY = 1;
+    private Integer[] idExpenseTetapP1P2 = new Integer[]{1449,1450,1451,1452,1454,1455,1456,1457,1459,1460,1461,1462,1464,1465,1466,1467};
+//    private Integer[] idExpenseTetap = new Integer[]{1449,1450,1451,1452,1454,1455,1456,1457,1459,1460,1461,1462,1464,1465,1466,1467,1469,1470,1471,1472,1475,1476,1477,1479,1480,1481,1483,1484,1485,1486,1488,1489,1490,1491,1493,1494,1495,1496,1498,1499,1500,1501,1503,1504,1505,1506,1508,1509,1510,1511,1513,1514,1515,1516,1518,1519,1520,1521,1523,1524,1525,1526,1528,1529,1530,1531,1533,1534,1535,1536,1538,1539,1540,1541,1543,1544,1545,1546,1548,1549,1550,1551,2849,2850,2851,2852,2854,2855,2856,2857,2589,2590,2591,2592,2584,2585,2586,2587,2539,2540,2541,2542};
+    private Integer[] idExpenseTetap = new Integer[]{1475,1476,1477,1479,1480,1481,1483,1484,1485,1486,1488,1489,1490,1491,1493,1494,1495,1496,1498,1499,1500,1501,1503,1504,1505,1506,1508,1509,1510,1511,1528,1529,1530,1531,1533,1534,1535,1536,1538,1539,1540,1541,1543,1544,1545,1546,1548,1549,1550,1551,2849,2850,2851,2852,2854,2855,2856,2857};
+    private Integer[] idExpenseTdkTetap = new Integer[]{1555,1556,1557,1558,1560,1561,1562,1563,1565,1566,1567,1568,1570,1571,1572,1573,1575,1576,1577,1578,1580,1581,1582,1583,1585,1586,1587,1588,1590,1591,1592,1593,1595,1596,1597,1598,1600,1601,1602,1603,1605,1606,1607,1608,1610,1611,1612,1613,1615,1616,1617,1618,1620,1621,1622,1623,1625,1626,1627,1628,1630,1631,1632,1633,1635,1636,1637,1638,1640,1641,1642,1643,1645,1646,1647,1648,1650,1651,1652,1653,1655,1656,1657,1658,1660,1661,1662,1663,1665,1666,1667,1668,1670,1671,1672,1673,1675,1676,1677,1678,1680,1681,1682,1683,1685,1686,1687,1688,1690,1691,1692,1693,1695,1696,1697,1698,1700,1701,1702,1703,1705,1706,1707,1708,1710,1711,1712,1713,1715,1716,1717,1718,1720,1721,1722,1723,1725,1726,1727,1728,1730,1731,1732,1733,1735,1736,1737,1738,1740,1741,1742,1743,1745,1746,1747,1748,1750,1751,1752,1753,1755,1756,1757,1758,1760,1761,1762,1763,1765,1766,1767,1768,1770,1771,1772,1773,1775,1776,1777,1778,1780,1781,1782,1783,1785,1786,1787,1788,1790,1791,1792,1793,1795,1796,1797,1798,1800,1801,1802,1803,1805,1806,1807,1808,1811,1812,1813,1814,1816,1817,1818,1819,1821,1822,1823,1824,1826,1827,1828,1829,1831,1832,1833,1834,1836,1837,1838,1839,1841,1842,1843,1844,1846,1847,1848,1849,1851,1852,1853,1854,1856,1857,1858,1859,1861,1862,1863,1864,1866,1867,1868,1869,1871,1872,1873,1874,1877,1878,1879,1880,1882,1883,1884,1885,1888,1889,1890,1891,1893,1894,1895,1896,1898,1899,1900,1901,1904,1905,1906,1907,1909,1910,1911,1912,1914,1915,1916,1917,1919,1920,1921,1922,1924,1925,1926,1927,1929,1930,1931,1932,1934,1935,1936,1937,1939,1940,1941,1942,1553,2420, 2421,1948, 1972,2172 };
+    private Integer[] idGroupOrgLuar = new Integer[]{3,6,8,9,10,11,13,14};
 
     public static void main(String[] args) throws IOException {
-        new Tax().printToExcel();
+
+//        new Tax().printToExcel();
 //        Tax tax = new Tax();
 //        tax.getListTax("1","9",false, "NON-PNBP");
 //        new PnsApbn();
 //        new Tax("fariz");
         //request_id=13763
 //        System.out.println(Ptkp.getInstance.getPtkp("3654"));
-
-//        Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&month=1&year=2020","GET"),Salary.class);
-//        new Tax(salary);
+        //Dekan
+        Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&user_id=775&year=2020", "GET"), Salary.class);
+        new Tax(salary);
+        //Wakil Dekan
+        Salary salary1 = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&user_id=790&year=2020", "GET"), Salary.class);
+        new Tax(salary1);
+//        for(int i=2; i<7;i++) {
+//            Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&month="+i+"&year=2020", "GET"), Salary.class);
+//            System.out.println("Bulan "+i);
+//            new Tax(salary);
+//        }
 //        salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&month=2&year=2020","GET"),Salary.class);
 //        new Tax(salary);
 //        salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&month=3&year=2020","GET"),Salary.class);
@@ -73,7 +87,7 @@ public class Tax {
         return jsonArray;
     }
 
-    public void printToExcel() throws IOException {
+    /*public void printToExcel() throws IOException {
         MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
         MongoDatabase mongoDatabase = mongoClient.getDatabase("r11_pajak2019");
         MongoCollection<Document> mongoCollection = mongoDatabase.getCollection("TotalPPh21");
@@ -222,7 +236,7 @@ public class Tax {
         }
         workbook.close();
         System.out.println(mongoCollection.countDocuments());
-    }
+    }*/
 
     public Tax(){
 //        datastore = MongoDb.getInstance.getDatastore(MongoDb.LOCAL,"revisi_pajak");
@@ -231,7 +245,8 @@ public class Tax {
     }
 
     public Tax(Salary salary){
-        datastore = MongoDb.getInstance.getDatastore(MongoDb.LOCAL,"r4_pajak2019");
+//        datastore = MongoDb.getInstance.getDatastore(MongoDb.LOCAL,"r4_pajak2019");
+        datastore = MongoDb.getInstance.getDatastore(MongoDb.LOCAL,"pajak_2020_Algo_2");
         jsonArray  = new JsonArray();
 //        filterTax(salary);
         filterTax2020(salary);
@@ -242,9 +257,24 @@ public class Tax {
             if(salary.getResponse().getSalary_receivers().stream().anyMatch(Objects::nonNull)){
                 List<SalaryDetail> allData = salary.getResponse().getSalary_receivers();
 
-                List<SalaryDetail> listDalam = allData.stream()
-                        .filter(c -> !Arrays.stream(idGroupOrgLuar).anyMatch(e -> e.intValue() == c.getUser().getGroup().getId()))
-                        .collect(Collectors.toList());
+                try {
+                    List<SalaryDetail> listDalam = allData.stream()
+                            .filter(c -> !Arrays.stream(idGroupOrgLuar).anyMatch(e -> {
+                                System.out.println("salary_id :"+c.getId());
+                                System.out.println("e :"+e.intValue());
+                                System.out.println("group id: "+c.getUser().getGroup().getId());
+
+                                if(c.getUser().getGroup().getId() == null){
+                                    return true;
+                                }else {
+                                    if (e.intValue() == c.getUser().getGroup().getId())
+                                        return true;
+                                    else
+                                        return false;
+                                }
+                            }))
+                            .collect(Collectors.toList());
+
 
                 List<SalaryDetail> listDalamA1 = listDalam.stream()
                         .filter(c -> (Arrays.stream(idExpenseTetap).anyMatch(e -> e.intValue() == c.getPayment().getAsJsonObject().get("activity").getAsJsonObject().get("expense_account").getAsJsonObject().get("id").getAsInt())))
@@ -270,12 +300,17 @@ public class Tax {
                         .filter(c -> c.getUnit().getId() == 1)
                         .collect(Collectors.toList());
 
-                calculateTaxHonor(listDalamA1,"a1"); // [DALAM]A1
+//                calculateTaxHonor(listDalamA1,"a1"); // [DALAM]A1 {Karena insentif pajak ini tidak di pakai}
+                calculateTaxSalary(listDalamA1, "a1"); // Perhitungan pajak yg di setahunkan
 //                calculateTaxMwa(listDalamNonFinal,false,"kegiatan"); // [DALAM]Non Final pegawai USU
                 calculateTaxHonor(listDalamNonFinal,"kegiatan"); // [DALAM]Non Final pegawai USU
                 calculateTaxJasmed(listDalamJasaMedis,"jasa"); // [DALAM]Jasa Medis Dokter di luar Rumah Sakit
                 calculateTaxTa(listLuarTenagaAhli,"jasa"); // [LUAR]Tenaga Ahli
                 calculateTaxMwa(listLuarMwa,true,"kegiatan");
+
+                }catch (Exception e){
+                    System.out.println(e.getCause());
+                }
             }else{ }
         }else{ }
     }
@@ -370,10 +405,6 @@ public class Tax {
             }else{ }
         }else{ }
     }
-
-    private Integer[] idExpenseTetap = new Integer[]{1449,1450,1451,1452,1454,1455,1456,1457,1459,1460,1461,1462,1464,1465,1466,1467,1469,1470,1471,1472,1475,1476,1477,1479,1480,1481,1483,1484,1485,1486,1488,1489,1490,1491,1493,1494,1495,1496,1498,1499,1500,1501,1503,1504,1505,1506,1508,1509,1510,1511,1513,1514,1515,1516,1518,1519,1520,1521,1523,1524,1525,1526,1528,1529,1530,1531,1533,1534,1535,1536,1538,1539,1540,1541,1543,1544,1545,1546,1548,1549,1550,1551,2849,2850,2851,2852,2854,2855,2856,2857,2589,2590,2591,2592,2584,2585,2586,2587,2539,2540,2541,2542};
-    private Integer[] idExpenseTdkTetap = new Integer[]{1555,1556,1557,1558,1560,1561,1562,1563,1565,1566,1567,1568,1570,1571,1572,1573,1575,1576,1577,1578,1580,1581,1582,1583,1585,1586,1587,1588,1590,1591,1592,1593,1595,1596,1597,1598,1600,1601,1602,1603,1605,1606,1607,1608,1610,1611,1612,1613,1615,1616,1617,1618,1620,1621,1622,1623,1625,1626,1627,1628,1630,1631,1632,1633,1635,1636,1637,1638,1640,1641,1642,1643,1645,1646,1647,1648,1650,1651,1652,1653,1655,1656,1657,1658,1660,1661,1662,1663,1665,1666,1667,1668,1670,1671,1672,1673,1675,1676,1677,1678,1680,1681,1682,1683,1685,1686,1687,1688,1690,1691,1692,1693,1695,1696,1697,1698,1700,1701,1702,1703,1705,1706,1707,1708,1710,1711,1712,1713,1715,1716,1717,1718,1720,1721,1722,1723,1725,1726,1727,1728,1730,1731,1732,1733,1735,1736,1737,1738,1740,1741,1742,1743,1745,1746,1747,1748,1750,1751,1752,1753,1755,1756,1757,1758,1760,1761,1762,1763,1765,1766,1767,1768,1770,1771,1772,1773,1775,1776,1777,1778,1780,1781,1782,1783,1785,1786,1787,1788,1790,1791,1792,1793,1795,1796,1797,1798,1800,1801,1802,1803,1805,1806,1807,1808,1811,1812,1813,1814,1816,1817,1818,1819,1821,1822,1823,1824,1826,1827,1828,1829,1831,1832,1833,1834,1836,1837,1838,1839,1841,1842,1843,1844,1846,1847,1848,1849,1851,1852,1853,1854,1856,1857,1858,1859,1861,1862,1863,1864,1866,1867,1868,1869,1871,1872,1873,1874,1877,1878,1879,1880,1882,1883,1884,1885,1888,1889,1890,1891,1893,1894,1895,1896,1898,1899,1900,1901,1904,1905,1906,1907,1909,1910,1911,1912,1914,1915,1916,1917,1919,1920,1921,1922,1924,1925,1926,1927,1929,1930,1931,1932,1934,1935,1936,1937,1939,1940,1941,1942,1553,2420, 2421,1948, 1972,2172 };
-    private Integer[] idGroupOrgLuar = new Integer[]{3,6,8,9,10,11,13,14};
 
     public Tax(String fariz){
         datastore = MongoDb.getInstance.getDatastore(MongoDb.LOCAL,"r11_pajak2019");
@@ -628,25 +659,28 @@ public class Tax {
         });
     }
 
-    private void calculateTaxSalary(List<SalaryDetail> salaryDetailList){
+    private void calculateTaxSalary(List<SalaryDetail> salaryDetailList, String type){
         salaryDetailList.forEach(sd -> {
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("id",sd.getId());
             UserPajak userPajak = getUserPajak(sd);
 
             Query<PendapatanTetaps> qPt = datastore.createQuery(PendapatanTetaps.class)
-                    .disableValidation()
-                    .filter("id_user", sd.getUser().getId().toString());
-            if(qPt.count()==0){ //not exist (insert new data)
+                    .disableValidation();
+//                    .filter("id_user", sd.getUser().getId().toString());
+            qPt.and(qPt.criteria("id_user").contains(sd.getUser().getId().toString()),qPt.criteria("salary_id").equal(sd.getId().intValue()));
+            if(qPt.first()==null){ //not exist (insert new data)
                 PendapatanTetaps pendapatanTetaps = initializePendapatanTetap(sd, userPajak);
-
+                pendapatanTetaps.setType(type);
                 BigDecimal totalPendapatanSementara = getPendapatanSementara(sd);
 
                 Pajak pajak = new Pajak();
                 pajak.setTotal_pendapatan_rka(totalPendapatanSementara);
-                pajak.setJkk(StaticValue.jkk);
-                pajak.setJkm(StaticValue.jkm);
-                pajak.setBpjs_kesehatan(StaticValue.bpjs_kesehatan);
+//                pajak.setJkk(StaticValue.jkk); Tidak jelas dari Biro Keuangan tidak ada
+//                pajak.setJkm(StaticValue.jkm); Tidak jelas dari Biro Keuangan tidak ada
+//                pajak.setBpjs_kesehatan(StaticValue.bpjs_kesehatan); Tidak jelas dari Biro Keuangan tidak ada
 
-                totalPendapatanSementara = totalPendapatanSementara.add(StaticValue.jkk).add(StaticValue.jkm).add(StaticValue.bpjs_kesehatan);
+//                totalPendapatanSementara = totalPendapatanSementara.add(StaticValue.jkk).add(StaticValue.jkm).add(StaticValue.bpjs_kesehatan);
                 pajak.setBruto_pendapatan(totalPendapatanSementara);
 
                 BigDecimal biayaJabatan = getBiayaJabatan(totalPendapatanSementara,userPajak,pajak);
@@ -674,9 +708,14 @@ public class Tax {
 
                 pajak.setNetto_take_homepay(totalPendapatanSementara.subtract(total_pph21_sementara));
                 pajak.setPph21(listPph21);
+                UserPajakTax upt = new UserPajakTax();
+                upt.setIndex(t.getIndex());
+                upt.setReminder(t.getReminderPajak());
+                pajak.set_recordCalTax(upt);
                 userPajak.getSetting_pajak().setReminder(t.getReminderPajak());
                 userPajak.getSetting_pajak().setIndex(t.getIndex());
                 pendapatanTetaps.setPajak(pajak);
+                pendapatanTetaps.setStatus(true);
 
                 if(userPajak.getPph21().getUsu()==null) {
                     userPajak.getPph21().setUsu(total_pph21_sementara);
@@ -684,11 +723,19 @@ public class Tax {
                     userPajak.getPph21().setUsu(userPajak.getPph21().getUsu().add(total_pph21_sementara));
                 }
 
+                jsonObject.addProperty("pph21",total_pph21_sementara.toBigInteger());
+
                 datastore.save(userPajak);
                 datastore.save(pendapatanTetaps);
-
+                jsonArray.add(jsonObject);
             }else{ //already has data pendapatan tetap
-                Query<PendapatanTetaps> x = datastore.createQuery(PendapatanTetaps.class)
+                PendapatanTetaps pt = qPt.first();
+                pt.setType(type);
+                datastore.save(pt);
+                BigDecimal total_pph21_sementara = sumPPH21(pt.getPajak().getPph21());
+                jsonObject.addProperty("pph21",total_pph21_sementara.toBigInteger());
+                jsonArray.add(jsonObject);
+                /*Query<PendapatanTetaps> x = datastore.createQuery(PendapatanTetaps.class)
                         .disableValidation();
 //                        .filter("id_user", sd.getUser().getId().toString())
 //                        .filter("salary_id", sd.getId().intValue());
@@ -724,21 +771,21 @@ public class Tax {
                         datastore.save(userPajak);
                         datastore.save(pendapatanTetaps);
                     }else{ // there is some difference
-                        /**
+                        *//**
                          * TODO
                          *
                          * jika lebih dari sebelumya hanya hitung yg berlebihnya saja
                          * jika kurang dari sebelumnya ga tau mau diapain
-                         */
+                         *//*
                         System.out.println("Here Gaji Tidak Sama dgn bulan sebelumnya");
                     }
                 }else{ //salary sudah ada (salary duplicate)
-                    /**
+                    *//**
                      * TODO
                      *
                      * kirim hasil pph 21 ke RKA
-                     */
-                }
+                     *//*
+                }*/
             }
         });
     }
@@ -1370,7 +1417,7 @@ public class Tax {
         }
     }
 
-    private Integer[] idUserLebihBayarDibawahPtkp = new Integer[]{
+    /*private Integer[] idUserLebihBayarDibawahPtkp = new Integer[]{
             5863,
             6173,
             5677,
@@ -2018,5 +2065,5 @@ public class Tax {
             738,
             139,
             1485,
-    };
+    };*/
 }

@@ -20,6 +20,7 @@ public class PendapatanTetaps {
     @Reference
     private String id_user;
     private Integer salary_id;
+    private String type;
     private Unit unit;
     private Integer month;
     private Integer year;
@@ -30,6 +31,14 @@ public class PendapatanTetaps {
     private Date lastUpdated = new Date();
     @PrePersist
     void prePersist() {lastUpdated = new Date();}
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     public BasicDBObject getApbn_payment() {
         return apbn_payment;

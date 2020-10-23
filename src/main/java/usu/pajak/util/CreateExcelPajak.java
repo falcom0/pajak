@@ -1,16 +1,21 @@
 package usu.pajak.util;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.internal.LinkedTreeMap;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;import org.apache.poi.hssf.util.HSSFColor;
+import com.mongodb.*;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
+import dev.morphia.aggregation.Accumulator;
+import dev.morphia.aggregation.Group;
+import dev.morphia.query.Query;
+import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.query.Query;
+//import org.mongodb.morphia.Datastore;
+//import org.mongodb.morphia.Morphia;
+//import org.mongodb.morphia.query.Query;
+
+import org.bson.types.Decimal128;
+import usu.pajak.fariz.model.PendapatanTdkTetaps;
 import usu.pajak.model.Salary;
 import usu.pajak.model.SalaryDetail;
 import usu.pajak.model.UserPajak;
@@ -24,9 +29,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -36,8 +41,10 @@ public class CreateExcelPajak {
     private String[] headerPajakLuar = new String[]{"Masa Pajak","Tahun Pajak","Pembetulan","Nomor Bukti Potong","NPWP","NIK","Nama","Alamat","WP Luar Negeri","Kode Negara",
             "Kode Pajak","Jumlah Bruto","Jumlah DPP","Tanpa NPWP","Tarif","Jumlah PPh","NPWP Pemotong","Nama Pemotong","Tanggal Bukti Potong"};
 //    private MongoClient client = new MongoClient(new MongoClientURI("mongodb://fariz:Laru36Dema@clusterasetmongo-shard-00-00-t3kc1.mongodb.net:27017,clusterasetmongo-shard-00-01-t3kc1.mongodb.net:27017,clusterasetmongo-shard-00-02-t3kc1.mongodb.net:27017/test?ssl=true&replicaSet=ClusterAsetMongo-shard-0&authSource=admin&retryWrites=true")); //connect to mongodb
-private static MongoClient client = new MongoClient(new MongoClientURI("mongodb://localhost:27017/pajak_server")); //connect to mongodb
-    private Datastore datastore = new Morphia().mapPackage("usu.pajak.model.UserPajak").createDatastore(client, "pajak_server");
+//private static MongoClient client = new MongoClient(new MongoClientURI("mongodb://localhost:27017/pajak_server")); //connect to mongodb
+//    private Datastore datastore = new Morphia().mapPackage("usu.pajak.model.UserPajak").createDatastore(client, "pajak_server");
+    private static MongoClient client = new MongoClient(new MongoClientURI("mongodb://localhost:27017/revisi_pajak_2020_agustus")); //connect to mongodb
+    private Datastore datastore = new Morphia().mapPackage("usu.pajak.model.UserPajak").createDatastore(client, "revisi_pajak_2020_agustus");
     private static CellStyle style,currency,styleWarning;
     private String[] headerMonth = new String[]{"No.","NIP","Nama","NPWP","Kegiatan","Jenis","Bruto Pendapatan","Pengurang Jabatan","Pengurang Pensiun",
             "Netto Pendapatan","Netto Setahun","PTKP Sebulan","PTKP Setahun","PKP","PKP Setahun","Total PPH21"};
@@ -47,10 +54,12 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
 
     public CreateExcelPajak() throws IOException{
 //        createExcelBasedOnUnit();
-        createExcelBasedOnMonth("false","NON-PNBP","TETAP");
+//        createExcelBasedOnMonth("false","NON-PNBP","TETAP", "2020");
 //        createExcelBasedOnMonth("true","NON-PNBP","LUAR");
 //        createExcelBasedOnPerson();
 //        createExcelBasedOnDJP();
+        _genExcelMonthly2020(2020, false, "TETAP");
+        _genExcelMonthly2020(2020, true, "LUAR");
     }
 
     private void createExcelBasedOnDJP() throws IOException{
@@ -936,12 +945,219 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
         workbook.close();
     }
 
-    private void createExcelBasedOnMonth(String pegawaiLuar, String sumberDana, String filename) throws IOException{
+    private Integer[] idGroupOrgLuar = new Integer[]{3,6,8,9,10,11,13,14};
+
+    private void _genExcelMonthly2020(int year, boolean luar, String filename) throws IOException{
+        String response = callApi("https://api.usu.ac.id/0.1/units","GET", true);
+        DataUnit du = new Gson().fromJson(response, DataUnit.class);
+//        ApiRka apiRka = new ApiRka();
+//        String[] months = new DateFormatSymbols().getMonths();
+        for(int i=0;i<8;i++){
+            Workbook workbook = WorkbookFactory.create(new File("D:/PAJAK_2019.xls"));
+            currency = workbook.createCellStyle();
+            currency.setDataFormat(workbook.createDataFormat().getFormat("#,##0.00"));
+            int month = i+1;
+            for(int z=1;z<du.getData().size();z++) {
+                Parent par = du.getData().get(z);
+                Children children = new Children();
+                children.setId(par.getId());
+                children.setName(par.getName());
+                System.out.println(par.getName());
+
+                _inputSheet(Integer.parseInt(children.getId()), month, year, workbook, children.getName(), luar);
+            }
+
+            for(int j=0;j<du.getData().get(0).getChildren().size();j++) {
+                Children children = du.getData().get(0).getChildren().get(j);
+
+                _inputSheet(Integer.parseInt(children.getId()), month, year, workbook, children.getName(), luar);
+            }
+            try (OutputStream fileOut = new FileOutputStream("D:\\PJK-usu\\["+filename+"]SPT_MASA_PAJAK_2020_BULAN_"+(month)+".xls")) {
+                workbook.write(fileOut);
+            }
+            workbook.close();
+            System.out.println(month);
+        }
+
+    }
+
+    private void _inputSheet(Integer unitId, Integer month, Integer year, Workbook workbook, String sheetName, boolean luar){
+        Query<PendapatanTdkTetaps> qpt;
+        qpt = datastore.createQuery(PendapatanTdkTetaps.class)
+                .disableValidation()
+                .filter("unit.id =", unitId)
+                .filter("month =", month)
+                .filter("year =", year)
+        ;
+
+        Iterator<SPTmasa> aggre = datastore.createAggregation(PendapatanTdkTetaps.class)
+                .match(qpt)
+                .group("id_user", Group.grouping("total_bruto", Accumulator.accumulator("$sum", "pajak.total_pendapatan_rka")),
+                        Group.grouping("total_netto", Accumulator.accumulator("$sum", "pajak.netto_pendapatan")),
+                        Group.grouping("total_pph21", Accumulator.accumulator("$sum", Accumulator.accumulator("$sum", "pajak.pph21._hasil")))
+                )
+                .lookup("user_pajaks","_id","id_user","user")
+                .out(SPTmasa.class)
+                ;
+
+        Sheet sheet = workbook.createSheet(sheetName.replaceAll("/", ""));
+        Row row = sheet.createRow(0);
+
+        if(!luar){
+            for (int k = 0; k < headerPajak.length; k++) {
+                row.createCell(k).setCellValue(headerPajak[k]);
+            }
+        }else{
+            for (int k = 0; k < headerPajakLuar.length; k++) {
+                row.createCell(k).setCellValue(headerPajakLuar[k]);
+            }
+        }
+
+        int count = 1;
+        while(aggre.hasNext()){
+            SPTmasa rekapUserPajak = aggre.next();
+
+            BasicDBObject userPajak = (BasicDBObject) rekapUserPajak.getUser().get(0);
+            Integer groupId = null;
+            if(userPajak.get("group") != null) {
+                BasicDBObject group = (BasicDBObject) userPajak.get("group");
+                groupId = group.getInt("id");
+            }
+            String npwp_simsdm = userPajak.getString("npwp_simsdm");
+            String fullName = userPajak.getString("full_name");
+            Decimal128 totalBruto = (Decimal128) rekapUserPajak.getTotal_bruto();
+            Decimal128 totalPph21 = (Decimal128) rekapUserPajak.getTotal_pph21();
+            if(!checkPegawaiLuar(rekapUserPajak.get_id(), groupId)){
+
+                Row rowPajak = sheet.createRow(count);
+                Cell cell = rowPajak.createCell(0);
+                cell.setCellValue(month);
+                cell = rowPajak.createCell(1);
+                cell.setCellValue(2019);
+                cell = rowPajak.createCell(2);
+                cell.setCellValue(0);
+                cell = rowPajak.createCell(3);
+                cell.setCellValue(npwp_simsdm);
+                cell = rowPajak.createCell(4);
+                cell.setCellValue(fullName);
+                cell = rowPajak.createCell(5);
+                cell.setCellValue("21-100-01");
+                cell = rowPajak.createCell(6);
+                cell.setCellValue(totalBruto.intValue());
+                cell.setCellType(CellType.NUMERIC);
+                cell.setCellStyle(currency);
+
+                cell = rowPajak.createCell(7);
+                cell.setCellValue(totalPph21.intValue());
+                cell.setCellType(CellType.NUMERIC);
+                cell.setCellStyle(currency);
+
+                count++;
+            }else if(luar) {
+                Row rowPajak = sheet.createRow(count);
+                Cell cell = rowPajak.createCell(0);
+                cell.setCellValue(month);
+                cell = rowPajak.createCell(1);
+                cell.setCellValue(2019);
+                cell = rowPajak.createCell(2);
+                cell.setCellValue(0);
+                cell = rowPajak.createCell(4);
+                cell.setCellValue(npwp_simsdm);
+                cell = rowPajak.createCell(6);
+                cell.setCellValue(fullName);
+                cell = rowPajak.createCell(8);
+                cell.setCellValue("N");
+                cell = rowPajak.createCell(10);
+                cell.setCellValue("21-100-03");
+                cell = rowPajak.createCell(11);
+                cell.setCellValue(totalBruto.intValue());
+                cell.setCellType(CellType.NUMERIC);
+                cell.setCellStyle(currency);
+
+                cell = rowPajak.createCell(12);
+                cell.setCellValue(0/*totalPKP.intValue()*/); //DPP
+                cell.setCellType(CellType.NUMERIC);
+                cell.setCellStyle(currency);
+
+                cell = rowPajak.createCell(13);
+                cell.setCellValue("Y");
+
+                cell = rowPajak.createCell(14);
+                cell.setCellValue(0/*tarif.intValue()*/); //Tarif
+                cell.setCellType(CellType.NUMERIC);
+
+                cell = rowPajak.createCell(15);
+                cell.setCellValue(totalPph21.intValue());
+                cell.setCellType(CellType.NUMERIC);
+                cell.setCellStyle(currency);
+
+                count++;
+            }else{
+                System.out.println("Stranger : "+rekapUserPajak.get_id());
+            }
+        }
+
+        if (count > 1) {
+            if(!luar) {
+                Row rowTotal = sheet.createRow(count);
+                Cell cellTotal = rowTotal.createCell(0);
+                cellTotal.setCellValue("TOTAL");
+                cellTotal = rowTotal.createCell(6);
+                cellTotal.setCellFormula("SUM(G2:G" + (count) + ")");
+                cellTotal.setCellType(CellType.FORMULA);
+                cellTotal.setCellStyle(currency);
+                cellTotal = rowTotal.createCell(7);
+                cellTotal.setCellFormula("SUM(H2:H" + (count) + ")");
+                cellTotal.setCellType(CellType.FORMULA);
+                cellTotal.setCellStyle(currency);
+            }else{
+                Row rowTotal = sheet.createRow(count);
+                Cell cellTotal = rowTotal.createCell(0);
+                cellTotal.setCellValue("TOTAL");
+                cellTotal = rowTotal.createCell(11);
+                cellTotal.setCellFormula("SUM(L2:L" + (count) + ")");
+                cellTotal.setCellType(CellType.FORMULA);
+                cellTotal.setCellStyle(currency);
+                cellTotal = rowTotal.createCell(12);
+                cellTotal.setCellFormula("SUM(M2:M" + (count) + ")");
+                cellTotal.setCellType(CellType.FORMULA);
+                cellTotal.setCellStyle(currency);
+                cellTotal = rowTotal.createCell(15);
+                cellTotal.setCellFormula("SUM(P2:P" + (count) + ")");
+                cellTotal.setCellType(CellType.FORMULA);
+                cellTotal.setCellStyle(currency);
+            }
+            count++;
+        }
+    }
+
+    private boolean checkPegawaiLuar(String userId, Integer groupId){
+        if(userId.contains("-")){
+            return true;
+        }else {
+            if (Arrays.stream(idGroupOrgLuar).anyMatch(e -> {
+                if (groupId == null) {
+                    return true;
+                } else {
+                    if (e.intValue() == groupId)
+                        return true;
+                    else
+                        return false;
+                }
+            })
+            ) {
+                return true;
+            }else{
+                return false;
+            }
+        }
+    }
+    private void createExcelBasedOnMonth(String pegawaiLuar, String sumberDana, String filename, String year) throws IOException{
         String response = callApi("https://api.usu.ac.id/0.1/units","GET", true);
         DataUnit du = new Gson().fromJson(response, DataUnit.class);
         ApiRka apiRka = new ApiRka();
         String[] months = new DateFormatSymbols().getMonths();
-        for(int i=11;i<12;i++){
+        for(int i=0;i<12;i++){
             Workbook workbook = WorkbookFactory.create(new File("D:/PAJAK_2019.xls"));
             currency = workbook.createCellStyle();
             currency.setDataFormat(workbook.createDataFormat().getFormat("#,##0.00"));
@@ -953,12 +1169,12 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                 children.setName(par.getName());
 
                 String responsePajak = callApi("http://localhost:8253/list-tax?month="+Integer.toString(i+1)+"&unit_id="+
-                        25+"&apbn=true&pegawai_luar="+pegawaiLuar+"&sumber_dana="+sumberDana,"GET",false);
+                        par.getId()+"&apbn=true&pegawai_luar="+pegawaiLuar+"&sumber_dana="+sumberDana+"&year="+year,"GET",false);
                 UserPajak[] listResult = new Gson().fromJson(responsePajak, UserPajak[].class);
                 Salary salary = new Gson().fromJson(
                         apiRka.callApiUsu(
-                                "https://api.usu.ac.id/0.2/salary_receipts?status=1&year=2019&source_of_fund="+sumberDana+
-                                        "&month="+Integer.toString(i+1)+"&unit_id="+16+"&mode=summary2", "GET")
+                                "https://api.usu.ac.id/0.2/salary_receipts?status=1&year="+year+"&source_of_fund="+sumberDana+
+                                        "&month="+Integer.toString(i+1)+"&unit_id="+par.getId()+"&mode=summary2", "GET")
                         , Salary.class);
                 List<SalaryDetail> listSalaryDetail = salary.getResponse().getSalary_receivers();
                 if(listSalaryDetail.size()>0) {
@@ -1202,12 +1418,12 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                 Children children = du.getData().get(0).getChildren().get(j);
 
                 String responsePajak = callApi("http://localhost:8253/list-tax?month="+Integer.toString(i+1)+"&unit_id="+
-                        children.getId()+"&apbn=true&pegawai_luar="+pegawaiLuar+"&sumber_dana="+sumberDana,"GET",false);
+                        children.getId()+"&apbn=true&pegawai_luar="+pegawaiLuar+"&sumber_dana="+sumberDana+"&year="+year,"GET",false);
                 UserPajak[] listResult = new Gson().fromJson(responsePajak, UserPajak[].class);
 
                 Salary salary = new Gson().fromJson(
                         apiRka.callApiUsu(
-                                "https://api.usu.ac.id/0.2/salary_receipts?status=1&year=2019&source_of_fund="+sumberDana+
+                                "https://api.usu.ac.id/0.2/salary_receipts?status=1&year="+year+"&source_of_fund="+sumberDana+
                                         "&month="+Integer.toString(i+1)+"&unit_id="+children.getId(), "GET")
                         , Salary.class);
 
@@ -1430,7 +1646,7 @@ private static MongoClient client = new MongoClient(new MongoClientURI("mongodb:
                 }
             }
 
-            try (OutputStream fileOut = new FileOutputStream("D:\\PJK-usu\\["+filename+"]BFKG12-PAJAK_2019_NON_FINAL_REV_BULAN_"+(i+1)+".xls")) {
+            try (OutputStream fileOut = new FileOutputStream("D:\\PJK-usu\\["+filename+"]SPT_MASA_PAJAK_2020_BULAN_"+(i+1)+".xls")) {
                 workbook.write(fileOut);
             }
             workbook.close();
@@ -1778,5 +1994,50 @@ class Children{
 
     public String getName() {
         return name;
+    }
+}
+
+class SPTmasa{
+    private String _id;
+    private String id_user;
+    private Object total_bruto;
+    private Object total_netto;
+    private Object total_pph21;
+    private BasicDBList user;
+
+    public BasicDBList getUser() {
+        return user;
+    }
+
+    public Object getTotal_pph21() {
+        return total_pph21;
+    }
+
+    public Object getTotal_netto() {
+        return total_netto;
+    }
+
+    public String get_id() {
+        return _id;
+    }
+
+    public void set_id(String _id) {
+        this._id = _id;
+    }
+
+    public Object getTotal_bruto() {
+        return total_bruto;
+    }
+
+    public String getId_user() {
+        return id_user;
+    }
+
+    public void setId_user(String id_user) {
+        this.id_user = id_user;
+    }
+
+    public void setTotal_bruto(Object total_bruto) {
+        this.total_bruto = total_bruto;
     }
 }

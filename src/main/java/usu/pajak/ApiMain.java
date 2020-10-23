@@ -75,7 +75,7 @@ public class ApiMain {
                             , Salary.class);
 
                     // hitung pajak
-                    if (apiRka.serviceCalculateTax(salary)) {
+//                    if (apiRka.serviceCalculateTax(salary)) {
                         // inject to api rka
                         if (apiRka.getJsonArray() != null) {
 //                            apiRka.callApiUsu(
@@ -147,7 +147,7 @@ public class ApiMain {
                 DetailTaxService detailTax = new DetailTaxService(logger, salaryId);
                 String result = new Gson().toJson(detailTax.getDetailTax(), DetailTax.class);
                 return result;
-            });
+            });*/
 
             get("list-tax", (req,res)->{
                 String month = req.queryParams("month");
@@ -171,7 +171,7 @@ public class ApiMain {
                 return result;
             });
 
-            get("/delete-salary", (req,res)->{
+           /* get("/delete-salary", (req,res)->{
                String requestId = req.queryParams("request_id");
                String salaryId = req.queryParams("salary_id");
                DeleteSalaryService deleteSalaryService = new DeleteSalaryService(logger);

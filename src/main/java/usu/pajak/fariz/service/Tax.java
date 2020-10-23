@@ -47,11 +47,11 @@ public class Tax {
         //request_id=13763
 //        System.out.println(Ptkp.getInstance.getPtkp("3654"));
         //Dekan
-        Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&user_id=775&year=2020", "GET"), Salary.class);
-        new Tax(salary);
+//        Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&user_id=775&year=2020", "GET"), Salary.class);
+//        new Tax(salary);
         //Wakil Dekan
-        Salary salary1 = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&user_id=790&year=2020", "GET"), Salary.class);
-        new Tax(salary1);
+//        Salary salary1 = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&user_id=790&year=2020", "GET"), Salary.class);
+//        new Tax(salary1);
 //        for(int i=2; i<7;i++) {
 //            Salary salary = new Gson().fromJson(ReceiveRka.getInstance.callApiUsu("https://api.usu.ac.id/0.2/salary_receipts?status=1&month="+i+"&year=2020", "GET"), Salary.class);
 //            System.out.println("Bulan "+i);
